@@ -1,0 +1,15 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-cedios-dev-5b717-authRole",
+      "UnauthRoleArn": "arn:aws:iam::891377022749:role/amplify-cedios-dev-5b717-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::891377022749:role/amplify-cedios-dev-5b717-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-cedios-dev-5b717-deployment",
+      "UnauthRoleName": "amplify-cedios-dev-5b717-unauthRole",
+      "StackName": "amplify-cedios-dev-5b717",
+      "StackId": "arn:aws:cloudformation:us-east-1:891377022749:stack/amplify-cedios-dev-5b717/dd92b160-acf8-11ef-9153-0affcff57b31",
+      "AmplifyAppId": "d1mvycoo07e7y0"
+    }
+  }
+}

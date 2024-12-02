@@ -1,0 +1,13 @@
+{
+    "name": "config",
+    "version": "0.0.0",
+    "main": "index.ts",
+    "license": "MIT",
+    "files": [
+      "amplify",
+      "auth"
+    ],
+    "dependencies": {
+      "aws-amplify": "^6.10.0"
+    }
+  }
