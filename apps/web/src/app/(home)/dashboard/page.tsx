@@ -24,7 +24,7 @@ export default function DashboardPage() {
 
   const CLABE = "123456789012345678" // Replace with actual CLABE
   const mockCardData = {
-    modelo: "Visa Platinum",
+    modelo: "Visa",
     numero: "4532 7589 1234 5678",
     mesExpiracion: "12",
     añoExpiracion: "2025",
