@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/select"
 import MovimientosFilter from "@/components/transferencias/TransaccionesComponent"
 import { Transferir } from "@/components/transferencias/transferir"
-import { Schema } from "../../../../../cedi-monorepo/apps/web/amplify/data/resource"
+import { Schema } from "../../../../../amplify/data/resource"
+
 
 export default function TransferenciasPage() {
   const [clabe, setClabe] = useState("")

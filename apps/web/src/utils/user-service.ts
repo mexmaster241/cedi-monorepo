@@ -2,7 +2,8 @@ import { generateNewClabe } from '@/utils/clabe';
 
 import { generateClient } from 'aws-amplify/api';
 import { updateUserAttributes } from 'aws-amplify/auth';
-import { Schema } from '../../cedi-monorepo/apps/web/amplify/data/resource';
+import { Schema } from '../../amplify/data/resource';
+
 
 const client = generateClient<Schema>();
 
