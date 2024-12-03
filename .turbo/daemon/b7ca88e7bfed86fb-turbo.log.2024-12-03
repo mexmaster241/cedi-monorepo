@@ -154,3 +154,7 @@
 2024-12-03T00:17:41.924326Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/web/.turbo/turbo-build.log"), AnchoredSystemPathBuf(".turbo/cookies/17.cookie")}
 2024-12-03T00:17:41.924338Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }, WorkspacePackage { name: Other("cedi-2.0"), path: AnchoredSystemPathBuf("apps/web") }}))
 2024-12-03T00:17:41.924424Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2024-12-03T00:28:22.269941Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/config/package.json")}
+2024-12-03T00:28:22.270420Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("config"), path: AnchoredSystemPathBuf("packages/config") }}))
+2024-12-03T00:28:40.365768Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/config/tsconfig.json")}
+2024-12-03T00:28:40.365788Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("config"), path: AnchoredSystemPathBuf("packages/config") }}))

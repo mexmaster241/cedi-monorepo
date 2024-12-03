@@ -1,17 +1,22 @@
 {
-    "name": "config",
-    "version": "0.0.0",
-    "main": "index.ts",
-    "license": "MIT",
-    "files": [
-      "amplify",
-      "auth"
-    ],
-    "scripts": {
-      "build": "echo 'No build required for config package'",
-      "lint": "echo 'No lint required for config package'"
-    },
-    "dependencies": {
-      "aws-amplify": "^6.10.0"
-    }
+  "name": "config",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "amplify",
+    "auth"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "aws-amplify": "^6.10.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
   }
+}
