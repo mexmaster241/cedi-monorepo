@@ -7,6 +7,10 @@
       "amplify",
       "auth"
     ],
+    "scripts": {
+      "build": "echo 'No build required for config package'",
+      "lint": "echo 'No lint required for config package'"
+    },
     "dependencies": {
       "aws-amplify": "^6.10.0"
     }

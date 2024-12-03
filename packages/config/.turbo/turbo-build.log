@@ -1,44 +1,6 @@
 
 > config@0.0.0 build
-> tsc
+> echo 'No build required for config package'
 
-[1G[0K[96mamplify/auth/resource.ts[0m:[93m1[0m:[93m28[0m - [91merror[0m[90m TS2307: [0mCannot find module '@aws-amplify/backend' or its corresponding type declarations.
-
-[7m1[0m import { defineAuth } from "@aws-amplify/backend";
-[7m [0m [91m                           ~~~~~~~~~~~~~~~~~~~~~~[0m
-
-[96mamplify/backend.ts[0m:[93m1[0m:[93m31[0m - [91merror[0m[90m TS2307: [0mCannot find module '@aws-amplify/backend' or its corresponding type declarations.
-
-[7m1[0m import { defineBackend } from '@aws-amplify/backend';
-[7m [0m [91m                              ~~~~~~~~~~~~~~~~~~~~~~[0m
-
-[96mamplify/data/resource.ts[0m:[93m1[0m:[93m50[0m - [91merror[0m[90m TS2307: [0mCannot find module '@aws-amplify/backend' or its corresponding type declarations.
-
-[7m1[0m import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
-[7m [0m [91m                                                 ~~~~~~~~~~~~~~~~~~~~~~[0m
-
-[96mamplify/data/resource.ts[0m:[93m14[0m:[93m21[0m - [91merror[0m[90m TS7006: [0mParameter 'allow' implicitly has an 'any' type.
-
-[7m14[0m     .authorization((allow) => [
-[7m  [0m [91m                    ~~~~~[0m
-
-[96mamplify/data/resource.ts[0m:[93m24[0m:[93m21[0m - [91merror[0m[90m TS7006: [0mParameter 'allow' implicitly has an 'any' type.
-
-[7m24[0m     .authorization((allow) => [
-[7m  [0m [91m                    ~~~~~[0m
-
-
-Found 5 errors in 3 files.
-
-Errors  Files
-     1  amplify/auth/resource.ts[90m:1[0m
-     1  amplify/backend.ts[90m:1[0m
-     3  amplify/data/resource.ts[90m:1[0m
-[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m Lifecycle script `build` failed with error:
-[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mcode[39m [33m2[39m
-[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mpath[39m /Users/adriancedillo/cedi-monorepo/packages/config
-[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mworkspace[39m config@0.0.0
-[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mlocation[39m /Users/adriancedillo/cedi-monorepo/packages/config
-[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m command failed
-[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mcommand[39m sh -c tsc
+[1G[0KNo build required for config package
 [1G[0K⠙[1G[0K
