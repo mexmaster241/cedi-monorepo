@@ -1,7 +1,3 @@
-// Temporary solution until amplify_outputs.json is generated
-export const amplifyConfig = {
-  // We'll add the actual config after first deployment
-};
+import outputs from './amplify_outputs.json';
 
-// If you need the types from your schema
-export type { Schema } from './amplify/data/resource';
+export const amplifyConfig = outputs;
