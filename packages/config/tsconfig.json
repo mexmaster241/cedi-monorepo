@@ -1,16 +1,14 @@
 {
   "compilerOptions": {
-    "target": "es2022",
+    "target": "es2020",
     "module": "esnext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "skipLibCheck": true,
     "outDir": "./dist",
-    "declaration": true
+    "declaration": true,
+    "strict": true
   },
-  "include": ["index.ts", "amplify/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
 }
