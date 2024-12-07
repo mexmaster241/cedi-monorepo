@@ -22,7 +22,7 @@ export default function DashboardPage() {
   const [copiedClabe, setCopiedClabe] = useState(false)
   const { toast } = useToast()
 
-  const CLABE = "123456789012345678" // Replace with actual CLABE
+  const CLABE = "123456789012345679" // Replace with actual CLABE
   const mockCardData = {
     modelo: "Visa",
     numero: "4532 7589 1234 5678",
