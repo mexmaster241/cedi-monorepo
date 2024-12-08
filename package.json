@@ -6,7 +6,8 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "clean": "turbo run clean",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "sandbox": "npx ampx sandbox --profile adrian-cedi2"
   },
   "devDependencies": {
     "@aws-amplify/backend": "^1.8.0",
@@ -19,3 +20,4 @@
     "packages/*"
   ]
 }
+
