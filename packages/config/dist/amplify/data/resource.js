@@ -1,31 +1,34 @@
-import { a, defineData } from '@aws-amplify/backend';
-const schema = a.schema({
-    User: a
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.data = void 0;
+var backend_1 = require("@aws-amplify/backend");
+var schema = backend_1.a.schema({
+    User: backend_1.a
         .model({
-        email: a.string().required(),
-        givenName: a.string().required(),
-        familyName: a.string().required(),
-        clabe: a.string(),
-        balance: a.float().default(0),
-        lastLogin: a.datetime(),
-        owner: a.string(),
+        email: backend_1.a.string().required(),
+        givenName: backend_1.a.string().required(),
+        familyName: backend_1.a.string().required(),
+        clabe: backend_1.a.string(),
+        balance: backend_1.a.float().default(0),
+        lastLogin: backend_1.a.datetime(),
+        owner: backend_1.a.string(),
     })
-        .authorization((allow) => [
+        .authorization(function (allow) { return [
         allow.owner().to(['read', 'update']),
         allow.publicApiKey().to(['create'])
-    ]),
-    ClabeSequence: a
+    ]; }),
+    ClabeSequence: backend_1.a
         .model({
-        id: a.string().required(),
-        lastSequence: a.integer().required().default(0),
+        id: backend_1.a.string().required(),
+        lastSequence: backend_1.a.integer().required().default(0),
     })
-        .authorization((allow) => [
+        .authorization(function (allow) { return [
         allow.publicApiKey().to(['read', 'update']),
         allow.owner().to(['read', 'update']),
-    ]),
+    ]; }),
 });
-export const data = defineData({
-    schema,
+exports.data = (0, backend_1.defineData)({
+    schema: schema,
     authorizationModes: {
         defaultAuthorizationMode: 'userPool',
         apiKeyAuthorizationMode: {

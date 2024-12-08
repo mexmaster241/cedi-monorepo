@@ -16,10 +16,10 @@ declare const schema: import("@aws-amplify/data-schema").ModelSchema<{
             authorization: [];
             disabledOperations: [];
         }, "authorization", (Omit<import("@aws-amplify/data-schema").Authorization<"owner", "owner", false> & {
-            to: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, operations: ("read" | "update" | "create" | "list" | "get" | "delete" | "sync" | "listen" | "search")[]) => Omit<SELF, "to">;
+            to: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, operations: import("@aws-amplify/data-schema/dist/esm/Authorization").Operation[]) => Omit<SELF, "to">;
             identityClaim: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, property: string) => Omit<SELF, "identityClaim">;
         }, "to"> | Omit<import("@aws-amplify/data-schema").Authorization<"public", undefined, false> & {
-            to: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, operations: ("read" | "update" | "create" | "list" | "get" | "delete" | "sync" | "listen" | "search")[]) => Omit<SELF, "to">;
+            to: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, operations: import("@aws-amplify/data-schema/dist/esm/Authorization").Operation[]) => Omit<SELF, "to">;
         }, "to">)[]>, "authorization">;
         ClabeSequence: import("@aws-amplify/data-schema").ModelType<import("@aws-amplify/data-schema-types").SetTypeSubArg<{
             fields: {
@@ -31,10 +31,10 @@ declare const schema: import("@aws-amplify/data-schema").ModelSchema<{
             authorization: [];
             disabledOperations: [];
         }, "authorization", (Omit<import("@aws-amplify/data-schema").Authorization<"owner", "owner", false> & {
-            to: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, operations: ("read" | "update" | "create" | "list" | "get" | "delete" | "sync" | "listen" | "search")[]) => Omit<SELF, "to">;
+            to: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, operations: import("@aws-amplify/data-schema/dist/esm/Authorization").Operation[]) => Omit<SELF, "to">;
             identityClaim: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, property: string) => Omit<SELF, "identityClaim">;
         }, "to"> | Omit<import("@aws-amplify/data-schema").Authorization<"public", undefined, false> & {
-            to: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, operations: ("read" | "update" | "create" | "list" | "get" | "delete" | "sync" | "listen" | "search")[]) => Omit<SELF, "to">;
+            to: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, operations: import("@aws-amplify/data-schema/dist/esm/Authorization").Operation[]) => Omit<SELF, "to">;
         }, "to">)[]>, "authorization">;
     };
     authorization: [];
