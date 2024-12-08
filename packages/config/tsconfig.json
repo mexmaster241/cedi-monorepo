@@ -10,6 +10,6 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["*.ts"],
+  "include": ["index.ts", "amplify/**/*"],
   "exclude": ["node_modules", "dist"]
 }
