@@ -1,6 +1,7 @@
 {
   "name": "cedi-monorepo",
   "private": true,
+  "packageManager": "npm@10.2.4",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
