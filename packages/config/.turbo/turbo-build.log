@@ -1,6 +1,5 @@
 
 > config@0.0.0 build
-> echo 'No build required for config package'
+> tsc
 
-[1G[0KNo build required for config package
-[1G[0K⠙[1G[0K
+[1G[0K[1G[0K⠙[1G[0K
