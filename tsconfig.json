@@ -1,4 +1,8 @@
 {
-  "compilerOptions": {},
+  "compilerOptions": {
+    "paths": {
+      "@/config": ["./packages/config/amplify"]
+    }
+  },
   "extends": "expo/tsconfig.base"
 }
