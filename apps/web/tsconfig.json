@@ -20,10 +20,15 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-    "config": ["../../packages/config"],
-      "ui": ["../../packages/ui"]
+      "config/*": ["../../packages/config/*"],
+      "ui/*": ["../../packages/ui/*"]
     }
   },
-  "include": ["cedi-monorepo/apps/web/next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["cedi-monorepo/apps/web/node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
 }
