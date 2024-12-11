@@ -1,6 +1,6 @@
 "use client"
 import { Amplify } from "aws-amplify";
-import outputs from "@/amplify_outputs.json" // This will work because we added config as a dependency
+import outputs from "../../amplify_outputs.json" 
 
 Amplify.configure(outputs, { ssr: true });
 
