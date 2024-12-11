@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select"
 import MovimientosFilter from "@/components/transferencias/TransaccionesComponent"
 import { Transferir } from "@/components/transferencias/transferir"
-import { Schema } from "../../../../../amplify/data/resource"
+import {Schema} from "config/amplify/data/resource"
 
 
 export default function TransferenciasPage() {

@@ -4,6 +4,10 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useRouter, useSegments } from 'expo-router';
 import { getCurrentUser } from 'aws-amplify/auth';
+import { Amplify } from "aws-amplify";
+import { amplifyConfig } from "config";
+
+Amplify.configure(amplifyConfig, { ssr: true });
 
 export default function RootLayout() {
   const [isAuthChecking, setIsAuthChecking] = useState(true);

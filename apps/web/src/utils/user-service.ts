@@ -2,7 +2,7 @@ import { generateNewClabe } from '@/utils/clabe';
 
 import { generateClient } from 'aws-amplify/api';
 import { updateUserAttributes } from 'aws-amplify/auth';
-import { Schema } from '../../amplify/data/resource';
+import {Schema} from "config/amplify/data/resource"
 
 
 const client = generateClient<Schema>();
