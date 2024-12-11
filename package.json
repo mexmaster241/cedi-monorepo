@@ -18,7 +18,8 @@
     "turbo": "^1.12.5"
   },
   "workspaces": [
-    "apps/*",
+    "apps/web",
+    "apps/mobile",
     "packages/*"
   ],
   "dependencies": {
