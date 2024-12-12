@@ -43,5 +43,5 @@
   "exclude": [
     "cedi-monorepo/apps/web/node_modules"
   ],
-  "extends": "expo/tsconfig.base"
+
 }
