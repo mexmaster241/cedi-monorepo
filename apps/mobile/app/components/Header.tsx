@@ -1,8 +1,28 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { colors } from '../constants/colors';
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
+import { getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
+import { Schema } from "config/amplify/data/resource"
 
 export function Header() {
+  const [fullName, setFullName] = useState("Loading...");
+
+  useEffect(() => {
+    async function fetchUserData() {
+      try {
+        const attributes = await fetchUserAttributes();
+        const name = `${attributes.given_name || ""} ${attributes.family_name || ""}`.trim();
+        setFullName(name || "Usuario");
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+        setFullName("Usuario");
+      }
+    }
+    fetchUserData();
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
@@ -14,7 +34,7 @@ export function Header() {
       </View>
       <View style={styles.welcomeContainer}>
         <Text style={styles.greeting}>Bienvenido de nuevo</Text>
-        <Text style={styles.name}>John Doe</Text>
+        <Text style={styles.name}>{fullName}</Text>
       </View>
     </View>
   );

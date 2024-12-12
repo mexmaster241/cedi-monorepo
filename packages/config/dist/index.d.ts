@@ -8,6 +8,7 @@ export declare const amplifyConfig: {
         standard_required_attributes: string[];
         username_attributes: string[];
         user_verification_types: string[];
+        groups: never[];
         mfa_configuration: string;
         password_policy: {
             min_length: number;

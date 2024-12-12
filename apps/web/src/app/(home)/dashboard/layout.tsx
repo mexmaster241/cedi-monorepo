@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getCurrentUser } from 'aws-amplify/auth'
 import { BankingSidebar } from "@/components/components-banking-sidebar"
 import { useToast } from "@/hooks/use-toast"
+import Image from 'next/image'
 
 export default function DashboardLayout({
   children,
@@ -34,7 +35,9 @@ export default function DashboardLayout({
   }, [router, toast])
 
   if (isLoading) {
-    return <div>Cargando...</div> // You can replace this with a proper loading component
+    return <div className='animate-spin mb-4'>
+    <Image src="/logotipo-white.png" alt="Logo de Cedis" width={24} height={24} />   
+    </div>
   }
 
   return <BankingSidebar>{children}</BankingSidebar>

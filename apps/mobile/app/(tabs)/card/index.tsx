@@ -6,12 +6,37 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { generateClient } from 'aws-amplify/api';
+import { getCurrentUser } from 'aws-amplify/auth';
+import { Schema } from "config/amplify/data/resource";
+import { useState, useEffect } from 'react';
 
 export default function Card() {
-  const clabeNumber = "1234567890123456"; // Replace with actual CLABE
+  const [clabe, setClabe] = useState("");
+  const client = generateClient<Schema>();
+
+  useEffect(() => {
+    async function fetchClabe() {
+      try {
+        const { username } = await getCurrentUser();
+        const userResult = await client.models.User.get({ 
+          id: username,
+        }, {
+          authMode: 'userPool',
+          selectionSet: ['id', 'clabe']
+        });
+        
+        setClabe(userResult.data?.clabe ?? "");
+      } catch (err) {
+        console.error("Error fetching CLABE:", err);
+        setClabe("");
+      }
+    }
+    fetchClabe();
+  }, []);
 
   const copyToClipboard = async () => {
-    await Clipboard.setStringAsync(clabeNumber);
+    await Clipboard.setStringAsync(clabe);
     // You might want to add a toast or notification here
   };
 
@@ -44,7 +69,7 @@ export default function Card() {
           <View style={styles.clabeContainer}>
             <Text style={styles.clabeTitle}>CLABE</Text>
             <View style={styles.clabeBox}>
-              <Text style={styles.clabeNumber}>{clabeNumber}</Text>
+              <Text style={styles.clabeNumber}>{clabe || "Loading..."}</Text>
               <TouchableOpacity onPress={copyToClipboard}>
                 <Ionicons name="copy-outline" size={24} color={colors.black} />
               </TouchableOpacity>

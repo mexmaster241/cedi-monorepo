@@ -1,12 +1,44 @@
 import { colors } from '@/app/constants/colors';
 import { View, Text, StyleSheet } from 'react-native';
-
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
+import { getCurrentUser } from 'aws-amplify/auth';
+import { Schema } from "config/amplify/data/resource"
 
 export function BalanceCard() {
+  const [balance, setBalance] = useState(0);
+  const client = generateClient<Schema>();
+
+  useEffect(() => {
+    async function fetchBalance() {
+      try {
+        const { username } = await getCurrentUser();
+        const userResult = await client.models.User.get({ 
+          id: username,
+        }, {
+          authMode: 'userPool',
+          selectionSet: ['id', 'balance']
+        });
+        
+        setBalance(userResult.data?.balance ?? 0);
+      } catch (err) {
+        console.error("Error fetching balance:", err);
+        setBalance(0);
+      }
+    }
+    fetchBalance();
+  }, []);
+
+  // Format the balance with commas and two decimal places
+  const formattedBalance = new Intl.NumberFormat('es-MX', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(balance);
+
   return (
     <View style={styles.card}>
       <Text style={styles.label}>Balance disponible</Text>
-      <Text style={styles.balance}>$1,234.56</Text>
+      <Text style={styles.balance}>${formattedBalance}</Text>
     </View>
   );
 }

@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,11 +23,25 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-    "config": ["../../packages/config"],
-      "ui": ["../../packages/ui"]
+      "@/*": [
+        "./src/*"
+      ],
+      "config": [
+        "../../packages/config"
+      ],
+      "ui": [
+        "../../packages/ui"
+      ]
     }
   },
-  "include": ["cedi-monorepo/apps/web/next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["cedi-monorepo/apps/web/node_modules"]
+  "include": [
+    "cedi-monorepo/apps/web/next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "cedi-monorepo/apps/web/node_modules"
+  ],
+  "extends": "expo/tsconfig.base"
 }

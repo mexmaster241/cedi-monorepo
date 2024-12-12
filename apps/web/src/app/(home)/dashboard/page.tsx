@@ -13,6 +13,9 @@ import { TransferirForm } from "@/components/transferencias/TransferirForm"
 import { CardDetailsModal } from "@/components/tarjetas/card-details-modal"
 import { IconArrowDown, IconArrowUp, IconCreditCard, IconCopy, IconCheck } from "@tabler/icons-react"
 import { useToast } from "@/hooks/use-toast"
+import { generateClient } from 'aws-amplify/api'
+import { getCurrentUser } from 'aws-amplify/auth'
+import { Schema } from "config/amplify/data/resource"
 
 export default function DashboardPage() {
   const [isMobile, setIsMobile] = useState(false)
@@ -20,23 +23,39 @@ export default function DashboardPage() {
   const [showSendModal, setShowSendModal] = useState(false)
   const [showCardModal, setShowCardModal] = useState(false)
   const [copiedClabe, setCopiedClabe] = useState(false)
+  const [clabe, setClabe] = useState("")
+  const [balance, setBalance] = useState(0)
   const { toast } = useToast()
+  
+  const client = generateClient<Schema>()
 
-  const CLABE = "123456789012345679" // Replace with actual CLABE
-  const mockCardData = {
-    modelo: "Visa",
-    numero: "4532 7589 1234 5678",
-    mesExpiracion: "12",
-    añoExpiracion: "2025",
-    nombre: "Juan Pérez",
-    activa: true,
-    limiteRetiroDiario: 10000,
-    limiteRetiroATM: 5000,
-  }
+  useEffect(() => {
+    async function fetchUserData() {
+      try {
+        const { username } = await getCurrentUser();
+        const userResult = await client.models.User.get({ 
+          id: username,
+        }, {
+          authMode: 'userPool',
+          selectionSet: ['id', 'clabe', 'email', 'balance']
+        });
+        
+        setClabe(userResult.data?.clabe ?? "");
+        setBalance(userResult.data?.balance ?? 0);
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+        toast({
+          variant: "destructive",
+          description: "Error al cargar los datos del usuario",
+        })
+      }
+    }
+    fetchUserData();
+  }, []);
 
   const handleCopyClabe = async () => {
     try {
-      await navigator.clipboard.writeText(CLABE)
+      await navigator.clipboard.writeText(clabe)
       setCopiedClabe(true)
       toast({
         description: "CLABE copiada al portapapeles",
@@ -91,7 +110,7 @@ export default function DashboardPage() {
         </div>
         <div className="w-full">
           <BalanceCard 
-            balance={5240.50} 
+            balance={balance} 
             className="w-full max-w-full transform transition-all duration-200 hover:scale-105 hover:shadow-lg" 
           />
         </div>
@@ -134,7 +153,7 @@ export default function DashboardPage() {
             </DialogHeader>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                <span className="font-mono">{CLABE}</span>
+                <span className="font-mono">{clabe || "Loading..."}</span>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -165,11 +184,11 @@ export default function DashboardPage() {
         </Dialog>
 
         {/* Card Details Modal */}
-        <CardDetailsModal 
+        {/* <CardDetailsModal 
           open={showCardModal}
           onOpenChange={setShowCardModal}
-          cardData={mockCardData}
-        />
+        
+        /> */}
       </div>
     )
   }
@@ -179,7 +198,7 @@ export default function DashboardPage() {
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full lg:max-w-2xl">
           <BalanceCard 
-            balance={5240.50} 
+            balance={balance} 
             className="transform transition-all duration-200 hover:scale-105 hover:shadow-lg" 
           />
           <TransferenciasLimite 

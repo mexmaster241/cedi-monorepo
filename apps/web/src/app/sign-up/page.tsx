@@ -4,7 +4,7 @@ import { DashboardPreview } from '@/components/auth/dashboard-preview'
 
 export default function SignUpPage() {
   return (
-    <div className="flex min-h-screen flex-col-reverse md:flex-row">
+    <div className="flex min-h-screen overflow-hidden flex-col-reverse md:flex-row">
       {/* Left side - Sign Up Form */}
       <div className="w-full min-h-screen md:min-h-0 md:w-1/2 bg-cedi-white p-6 sm:p-8 md:p-10 flex items-center justify-center">
         <div className="w-full max-w-[400px] mx-auto py-6 md:py-0">

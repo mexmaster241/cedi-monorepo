@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { Menu } from 'lucide-react'
+import { getCurrentUser } from 'aws-amplify/auth'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -12,6 +13,21 @@ import {
 import Image from 'next/image'
 
 export function NavbarComponent() {
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false)
+
+  React.useEffect(() => {
+    checkUser()
+  }, [])
+
+  async function checkUser() {
+    try {
+      const user = await getCurrentUser()
+      setIsAuthenticated(!!user)
+    } catch (err) {
+      setIsAuthenticated(false)
+    }
+  }
+  
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center px-6">
@@ -81,17 +97,27 @@ export function NavbarComponent() {
                       Documentación
                     </MobileLink>
                     <div className="flex flex-col gap-3 pt-6">
-                      <Link href="/login">
-                        <Button className="w-full bg-cedi-beige text-cedi-black hover:bg-cedi-light-gray text-lg font-clash-display">
-                          Ingresa
-                        </Button>
-                      </Link>
-                      <Link href="/sign-up">
-                        <Button className="w-full bg-cedi-black text-white hover:bg-cedi-dark-gray text-lg font-clash-display">
-                          Crear cuenta
-                        </Button>
-                      </Link>
-                    </div>
+            {isAuthenticated ? (
+              <Link href="/dashboard">
+                <Button className="w-full bg-cedi-beige text-cedi-black hover:bg-cedi-light-gray text-lg font-clash-display">
+                  Entra
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button className="w-full bg-cedi-beige text-cedi-black hover:bg-cedi-light-gray text-lg font-clash-display">
+                    Ingresa
+                  </Button>
+                </Link>
+                <Link href="/sign-up">
+                  <Button className="w-full bg-cedi-black text-white hover:bg-cedi-dark-gray text-lg font-clash-display">
+                    Crear cuenta
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
                   </div>
                 </div>
               </SheetContent>
@@ -99,12 +125,26 @@ export function NavbarComponent() {
           </div>
           <div>
             <div className="hidden md:flex gap-2">
-              <Link href="/login">
-                <Button className="bg-cedi-beige text-cedi-black hover:bg-cedi-light-gray text-lg font-clash-display">Ingresa</Button>
-              </Link>
-              <Link href="/sign-up">
-                <Button className="bg-cedi-black text-white hover:bg-cedi-dark-gray text-lg font-clash-display">Crear cuenta</Button>
-              </Link>
+              {isAuthenticated ? (
+                <Link href="/dashboard">
+                  <Button className="bg-cedi-beige text-cedi-black hover:bg-cedi-light-gray text-lg font-clash-display">
+                    Entra
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button className="bg-cedi-beige text-cedi-black hover:bg-cedi-light-gray text-lg font-clash-display">
+                      Ingresa
+                    </Button>
+                  </Link>
+                  <Link href="/sign-up">
+                    <Button className="bg-cedi-black text-white hover:bg-cedi-dark-gray text-lg font-clash-display">
+                      Crear cuenta
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
