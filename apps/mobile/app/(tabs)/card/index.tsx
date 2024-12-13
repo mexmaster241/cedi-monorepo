@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { colors } from '@/app/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -37,7 +37,8 @@ export default function Card() {
 
   const copyToClipboard = async () => {
     await Clipboard.setStringAsync(clabe);
-    // You might want to add a toast or notification here
+    // wip notification
+    Alert.alert('CLABE copiada al portapapeles');
   };
 
   return (

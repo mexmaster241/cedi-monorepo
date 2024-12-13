@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cedi0s.mobile"
     },
     "android": {
       "adaptiveIcon": {
@@ -35,13 +36,29 @@
       ],
       [
         "expo-font",
-          {
-          "fonts": ["assets/fonts/ClashDisplay-Regular.otf"]
+        {
+          "fonts": [
+            "assets/fonts/ClashDisplay-Regular.otf"
+          ]
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "9ef17d09-62f0-4217-a707-bb00bf966d35"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9ef17d09-62f0-4217-a707-bb00bf966d35"
     }
   }
 }

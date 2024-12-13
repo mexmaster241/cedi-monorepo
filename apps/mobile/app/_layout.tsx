@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Slot, Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
@@ -7,11 +7,15 @@ import { getCurrentUser } from 'aws-amplify/auth';
 import { Amplify } from "aws-amplify";
 import { amplifyConfig } from "config";
 
+// Keep splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
+
 Amplify.configure(amplifyConfig, { ssr: true });
 
 export default function RootLayout() {
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const segments = useSegments();
   const router = useRouter();
   
   const [fontsLoaded] = useFonts({
@@ -33,14 +37,16 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (!isAuthChecking) {
-      if (!isAuthenticated) {
-        router.replace('/(auth)/intro');
-      } else {
-        router.replace('/');
-      }
+    if (isAuthChecking) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (!isAuthenticated && !inAuthGroup) {
+      router.replace('/(auth)/intro');
+    } else if (isAuthenticated && inAuthGroup) {
+      router.replace('/');
     }
-  }, [isAuthChecking, isAuthenticated]);
+  }, [isAuthChecking, isAuthenticated, segments]); 
 
   useEffect(() => {
     if (fontsLoaded && !isAuthChecking) {
@@ -48,19 +54,16 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, isAuthChecking]);
 
-  if (!fontsLoaded || isAuthChecking) {
-    return null;
-  }
-
   return (
-    <Stack screenOptions={{ 
-      headerShown: false,
-      contentStyle: {
-        backgroundColor: 'transparent'
-      }
-    }}>
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(tabs)" />
+    <Stack 
+      screenOptions={{ 
+        headerShown: false,
+        contentStyle: {
+          backgroundColor: 'transparent'
+        }
+      }}
+    >
+      <Slot />
     </Stack>
   );
 }

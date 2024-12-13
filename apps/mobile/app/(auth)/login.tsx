@@ -4,18 +4,67 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { colors } from '../constants/colors';
 import { signIn } from 'aws-amplify/auth';
+import { AuthError } from '@aws-amplify/auth';
+import NetInfo from "@react-native-community/netinfo";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleLogin = async () => {
     try {
-      await signIn({ username: email, password });
+      setErrorMessage('');
+      if (!email || !password) {
+        setErrorMessage('Por favor ingresa tu email y contraseña');
+        return;
+      }
+      
+      // Check network status
+      const networkState = await NetInfo.fetch();
+      console.log('Network state:', networkState);
+      
+      if (!networkState.isConnected) {
+        setErrorMessage('No hay conexión a internet');
+        return;
+      }
+
+      console.log('Attempting sign in with:', { username: email.trim() });
+      const signInResult = await signIn({
+        username: email.trim(),
+        password,
+      }).catch(e => {
+        console.log('Sign in catch block:', e);
+        throw e;
+      });
+      
+      console.log('Sign in completed:', signInResult);
       router.replace('/');
+      
     } catch (error) {
-      console.error('Error signing in:', error);
-      // Add error handling UI here
+      console.log('Error type:', typeof error);
+      console.log('Error instanceof Error:', error instanceof Error);
+      console.log('Error keys:', Object.keys(error as object));
+      console.log('Detailed error:', JSON.stringify(error, null, 2));
+      
+      if (error instanceof AuthError) {
+        switch(error.name) {
+          case 'UserNotConfirmedException':
+            setErrorMessage('Por favor verifica tu cuenta de email');
+            break;
+          case 'NotAuthorizedException':
+            setErrorMessage('Email o contraseña incorrectos');
+            break;
+          case 'UserNotFoundException':
+            setErrorMessage('No existe una cuenta con este email');
+            break;
+          default:
+            setErrorMessage(`Error al iniciar sesión: ${error.message}`);
+        }
+      } else {
+        setErrorMessage('Hubo un error inesperado. Por favor intenta de nuevo.');
+      }
+      console.error('Full error:', error);
     }
   };
 
