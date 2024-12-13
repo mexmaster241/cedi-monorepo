@@ -12,6 +12,7 @@ var schema = backend_1.a.schema({
         balance: backend_1.a.float().default(0),
         lastLogin: backend_1.a.datetime(),
         owner: backend_1.a.string(),
+        transactions: backend_1.a.hasMany('Transaction', 'userId'),
     })
         .authorization(function (allow) { return [
         allow.owner().to(['read', 'update']),
@@ -29,6 +30,7 @@ var schema = backend_1.a.schema({
     Transaction: backend_1.a
         .model({
         userId: backend_1.a.string().required(),
+        user: backend_1.a.belongsTo('User', 'userId'),
         type: backend_1.a.string().required(),
         status: backend_1.a.string().required(),
         amount: backend_1.a.float().required(),

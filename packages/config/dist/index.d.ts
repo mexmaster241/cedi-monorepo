@@ -87,6 +87,20 @@ export declare const amplifyConfig: {
                             isRequired: boolean;
                             attributes: never[];
                         };
+                        transactions: {
+                            name: string;
+                            isArray: boolean;
+                            type: {
+                                model: string;
+                            };
+                            isRequired: boolean;
+                            attributes: never[];
+                            isArrayNullable: boolean;
+                            association: {
+                                connectionType: string;
+                                associatedWith: string[];
+                            };
+                        };
                         createdAt: {
                             name: string;
                             isArray: boolean;
@@ -224,6 +238,19 @@ export declare const amplifyConfig: {
                             type: string;
                             isRequired: boolean;
                             attributes: never[];
+                        };
+                        user: {
+                            name: string;
+                            isArray: boolean;
+                            type: {
+                                model: string;
+                            };
+                            isRequired: boolean;
+                            attributes: never[];
+                            association: {
+                                connectionType: string;
+                                targetNames: string[];
+                            };
                         };
                         type: {
                             name: string;

@@ -10,6 +10,7 @@ declare const schema: import("@aws-amplify/data-schema").ModelSchema<{
                 balance: import("@aws-amplify/data-schema").ModelField<import("@aws-amplify/data-schema").Nullable<number>, "default", undefined>;
                 lastLogin: import("@aws-amplify/data-schema").ModelField<import("@aws-amplify/data-schema").Nullable<string>, never, undefined>;
                 owner: import("@aws-amplify/data-schema").ModelField<import("@aws-amplify/data-schema").Nullable<string>, never, undefined>;
+                transactions: import("@aws-amplify/data-schema").ModelRelationshipField<import("@aws-amplify/data-schema").ModelRelationshipTypeArgFactory<"Transaction", import("@aws-amplify/data-schema").ModelRelationshipTypes.hasMany, true>, "Transaction", "required", undefined>;
             };
             identifier: import("@aws-amplify/data-schema").ModelDefaultIdentifier;
             secondaryIndexes: [];
@@ -39,6 +40,7 @@ declare const schema: import("@aws-amplify/data-schema").ModelSchema<{
         Transaction: import("@aws-amplify/data-schema").ModelType<import("@aws-amplify/data-schema-types").SetTypeSubArg<{
             fields: {
                 userId: import("@aws-amplify/data-schema").ModelField<string, "required", undefined>;
+                user: import("@aws-amplify/data-schema").ModelRelationshipField<import("@aws-amplify/data-schema").ModelRelationshipTypeArgFactory<"User", import("@aws-amplify/data-schema").ModelRelationshipTypes.belongsTo, false>, "User", "required" | "valueRequired", undefined>;
                 type: import("@aws-amplify/data-schema").ModelField<string, "required", undefined>;
                 status: import("@aws-amplify/data-schema").ModelField<string, "required", undefined>;
                 amount: import("@aws-amplify/data-schema").ModelField<number, "required", undefined>;

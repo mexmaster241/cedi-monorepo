@@ -98,6 +98,22 @@
               "isRequired": false,
               "attributes": []
             },
+            "transactions": {
+              "name": "transactions",
+              "isArray": true,
+              "type": {
+                "model": "Transaction"
+              },
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true,
+              "association": {
+                "connectionType": "HAS_MANY",
+                "associatedWith": [
+                  "userId"
+                ]
+              }
+            },
             "createdAt": {
               "name": "createdAt",
               "isArray": false,
@@ -250,6 +266,21 @@
               "type": "String",
               "isRequired": true,
               "attributes": []
+            },
+            "user": {
+              "name": "user",
+              "isArray": false,
+              "type": {
+                "model": "User"
+              },
+              "isRequired": false,
+              "attributes": [],
+              "association": {
+                "connectionType": "BELONGS_TO",
+                "targetNames": [
+                  "userId"
+                ]
+              }
             },
             "type": {
               "name": "type",

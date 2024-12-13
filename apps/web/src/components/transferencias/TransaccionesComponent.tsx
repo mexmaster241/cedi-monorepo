@@ -1,7 +1,9 @@
+"use client"
+
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { DateTimeRange } from "./DateRange"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { DateRange } from "react-day-picker"
 import {
   Select,
@@ -11,6 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { TransaccionesTable } from "./TransaccionesTable"
+import { generateClient } from 'aws-amplify/api';
+import { type Schema } from 'config/amplify/data/resource';
+import { getCurrentUser } from 'aws-amplify/auth';
 
 interface FilterState {
   dates: DateRange;
@@ -21,20 +26,101 @@ interface FilterState {
 }
 
 export default function MovimientosFilter() {
+  const [transactions, setTransactions] = useState<Array<{
+    id: string;
+    type: string;
+    status: string;
+    amount: number;
+    commission: number;
+    finalAmount: number;
+    reference: string | null;
+    beneficiaryName: string | null;
+    createdAt: string | null;
+  }>>([]);
+  const [loading, setLoading] = useState(true);
+  const client = generateClient<Schema>();
+
+  useEffect(() => {
+    async function fetchTransactions() {
+      try {
+        setLoading(true);
+        console.log("Getting current user...");
+        const { username } = await getCurrentUser();
+        console.log("Current user:", username);
+        
+        console.log("Fetching transactions...");
+        const { data } = await client.models.Transaction.list({
+          filter: { userId: { eq: username } },
+          authMode: 'userPool',
+          selectionSet: ['id', 'type', 'status', 'amount', 'commission', 'finalAmount', 'reference', 'beneficiaryName', 'createdAt']
+        });
+        console.log("Transactions data:", data);
+        
+        setTransactions(data);
+      } catch (err: unknown) {
+        
+      }
+    }
+    fetchTransactions();
+  }, []);
+
   const [search, setSearch] = useState("")
   const [dateTimeRange, setDateTimeRange] = useState<FilterState>()
   const [tipoMovimiento, setTipoMovimiento] = useState("todo")
   const [estatusMovimiento, setEstatusMovimiento] = useState("todo")
   const dateTimeRangeRef = useRef<{ reset: () => void }>(null)
 
-  const handleFilter = () => {
-    console.log({
-      search,
-      dateTimeRange,
-      tipoMovimiento,
-      estatusMovimiento
-    })
-  }
+  const handleFilter = async () => {
+    try {
+      setLoading(true);
+      let filter: any = {};
+      
+      if (search) {
+        filter.or = [
+          { reference: { contains: search } },
+          { beneficiaryName: { contains: search } }
+        ];
+      }
+      
+      if (tipoMovimiento !== 'todo') {
+        filter.type = { eq: tipoMovimiento };
+      }
+      
+      if (estatusMovimiento !== 'todo') {
+        filter.status = { eq: estatusMovimiento };
+      }
+      
+      if (dateTimeRange?.dates) {
+        filter.createdAt = {
+          between: [
+            `${dateTimeRange.dates.from}T${dateTimeRange.times.from}:00`,
+            `${dateTimeRange.dates.to}T${dateTimeRange.times.to}:59`
+          ]
+        };
+      }
+
+      const { data } = await client.models.Transaction.list({
+        filter: filter,
+        authMode: 'userPool',
+        selectionSet: [
+          'id',
+          'type',
+          'status',
+          'amount',
+          'commission',
+          'finalAmount',
+          'reference',
+          'beneficiaryName',
+          'createdAt'
+        ]
+      });
+      setTransactions(data);
+    } catch (error) {
+      console.error('Error filtering transactions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleClear = () => {
     setSearch("")
@@ -99,7 +185,10 @@ export default function MovimientosFilter() {
           </Button>
         </div>
       </div>
-      <TransaccionesTable />
+      <TransaccionesTable 
+        transactions={transactions} 
+        loading={loading} 
+      />
     </div>
   )
 }

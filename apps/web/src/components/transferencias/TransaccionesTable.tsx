@@ -1,3 +1,5 @@
+"use client"
+
 import {
   Table,
   TableBody,
@@ -6,8 +8,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Skeleton } from "@/components/ui/skeleton"
 
-export function TransaccionesTable() {
+interface TransaccionesTableProps {
+  transactions: Array<{
+    id: string;
+    type: string;
+    status: string;
+    amount: number;
+    commission: number;
+    finalAmount: number;
+    reference: string | null;
+    beneficiaryName: string | null;
+    createdAt: string | null;
+  }>;
+  loading: boolean;
+}
+
+export function TransaccionesTable({ transactions, loading }: TransaccionesTableProps) {
+  if (loading) {
+    return <Skeleton className="w-full h-[400px]" />;
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -15,22 +37,35 @@ export function TransaccionesTable() {
           <TableHead>Fecha</TableHead>
           <TableHead>Tipo</TableHead>
           <TableHead>Estatus</TableHead>
-          <TableHead>Tipo de pago</TableHead>
           <TableHead>Referencia</TableHead>
-          <TableHead>Concepto</TableHead>
-          <TableHead>Concepto 2</TableHead>
+          <TableHead>Beneficiario</TableHead>
           <TableHead>Monto</TableHead>
           <TableHead>Comisión</TableHead>
-          <TableHead>Depósito final</TableHead>
-          <TableHead>Movimiento en la cuenta</TableHead>
-          <TableHead>Saldo</TableHead>
-          <TableHead>Comprobante</TableHead>
-          <TableHead>Detalles</TableHead>
+          <TableHead>Monto Final</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {/* Table rows will go here */}
+        {transactions?.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={8} className="text-center">
+              No hay transacciones disponibles
+            </TableCell>
+          </TableRow>
+        ) : (
+          transactions?.map((tx) => (
+            <TableRow key={tx.id}>
+              <TableCell>{tx.createdAt ? new Date(tx.createdAt).toLocaleString() : '-'}</TableCell>
+              <TableCell>{tx.type}</TableCell>
+              <TableCell>{tx.status}</TableCell>
+              <TableCell>{tx.reference || '-'}</TableCell>
+              <TableCell>{tx.beneficiaryName || '-'}</TableCell>
+              <TableCell>${tx.amount.toFixed(2)}</TableCell>
+              <TableCell>${tx.commission.toFixed(2)}</TableCell>
+              <TableCell>${tx.finalAmount.toFixed(2)}</TableCell>
+            </TableRow>
+          ))
+        )}
       </TableBody>
     </Table>
-  )
+  );
 }

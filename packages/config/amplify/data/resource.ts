@@ -10,6 +10,7 @@ const schema = a.schema({
       balance: a.float().default(0),
       lastLogin: a.datetime(),
       owner: a.string(),
+      transactions: a.hasMany('Transaction', 'userId'),
     })
     .authorization((allow) => [
       allow.owner().to(['read', 'update']),
@@ -29,6 +30,7 @@ const schema = a.schema({
   Transaction: a
     .model({
       userId: a.string().required(),
+      user: a.belongsTo('User', 'userId'),
       type: a.string().required(),
       status: a.string().required(),
       
