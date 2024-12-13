@@ -39,7 +39,11 @@ export default function LoginScreen() {
       });
       
       console.log('Sign in completed:', signInResult);
-      router.replace('/');
+      
+      // If sign in is successful, redirect to the tabs
+      if (signInResult.isSignedIn) {
+        router.replace('/tabs' as any); // Type assertion needed for router path
+      }
       
     } catch (error) {
       console.log('Error type:', typeof error);

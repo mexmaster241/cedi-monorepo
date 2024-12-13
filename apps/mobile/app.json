@@ -16,7 +16,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.cedi0s.mobile"
     },
     "web": {
       "bundler": "metro",
@@ -54,9 +55,7 @@
         "projectId": "9ef17d09-62f0-4217-a707-bb00bf966d35"
       }
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/9ef17d09-62f0-4217-a707-bb00bf966d35"
     }
