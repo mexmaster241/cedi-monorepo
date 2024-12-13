@@ -26,6 +26,41 @@ var schema = backend_1.a.schema({
         allow.publicApiKey().to(['read', 'update']),
         allow.owner().to(['read', 'update']),
     ]; }),
+    Transaction: backend_1.a
+        .model({
+        userId: backend_1.a.string().required(),
+        type: backend_1.a.string().required(),
+        status: backend_1.a.string().required(),
+        amount: backend_1.a.float().required(),
+        commission: backend_1.a.float().required(),
+        finalAmount: backend_1.a.float().required(),
+        paymentType: backend_1.a.string(),
+        reference: backend_1.a.string(),
+        beneficiaryName: backend_1.a.string(),
+        beneficiaryBank: backend_1.a.string(),
+        accountNumber: backend_1.a.string(),
+        concept: backend_1.a.string(),
+        concept2: backend_1.a.string(),
+        receiptUrl: backend_1.a.string(),
+        createdAt: backend_1.a.datetime(),
+        updatedAt: backend_1.a.datetime(),
+        balanceAfterTransaction: backend_1.a.float(),
+    })
+        .authorization(function (allow) { return [
+        allow.owner().to(['read']),
+        allow.publicApiKey().to(['create', 'read'])
+    ]; }),
+    Contact: backend_1.a
+        .model({
+        userId: backend_1.a.string().required(),
+        name: backend_1.a.string().required(),
+        type: backend_1.a.string().required(),
+        accountNumber: backend_1.a.string().required(),
+        bank: backend_1.a.string().required(),
+    })
+        .authorization(function (allow) { return [
+        allow.owner().to(['create', 'read', 'update', 'delete'])
+    ]; })
 });
 exports.data = (0, backend_1.defineData)({
     schema: schema,

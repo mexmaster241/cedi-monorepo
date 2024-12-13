@@ -208,6 +208,254 @@ export declare const amplifyConfig: {
                         sortKeyFieldNames: never[];
                     };
                 };
+                Transaction: {
+                    name: string;
+                    fields: {
+                        id: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        userId: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        type: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        status: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        amount: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        commission: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        finalAmount: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        paymentType: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        reference: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        beneficiaryName: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        beneficiaryBank: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        accountNumber: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        concept: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        concept2: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        receiptUrl: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        createdAt: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        updatedAt: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        balanceAfterTransaction: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                    };
+                    syncable: boolean;
+                    pluralName: string;
+                    attributes: ({
+                        type: string;
+                        properties: {
+                            rules?: undefined;
+                        };
+                    } | {
+                        type: string;
+                        properties: {
+                            rules: ({
+                                provider: string;
+                                ownerField: string;
+                                allow: string;
+                                operations: string[];
+                                identityClaim: string;
+                            } | {
+                                allow: string;
+                                provider: string;
+                                operations: string[];
+                                ownerField?: undefined;
+                                identityClaim?: undefined;
+                            })[];
+                        };
+                    })[];
+                    primaryKeyInfo: {
+                        isCustomPrimaryKey: boolean;
+                        primaryKeyFieldName: string;
+                        sortKeyFieldNames: never[];
+                    };
+                };
+                Contact: {
+                    name: string;
+                    fields: {
+                        id: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        userId: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        name: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        type: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        accountNumber: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        bank: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        createdAt: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                            isReadOnly: boolean;
+                        };
+                        updatedAt: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                            isReadOnly: boolean;
+                        };
+                    };
+                    syncable: boolean;
+                    pluralName: string;
+                    attributes: ({
+                        type: string;
+                        properties: {
+                            rules?: undefined;
+                        };
+                    } | {
+                        type: string;
+                        properties: {
+                            rules: {
+                                provider: string;
+                                ownerField: string;
+                                allow: string;
+                                operations: string[];
+                                identityClaim: string;
+                            }[];
+                        };
+                    })[];
+                    primaryKeyInfo: {
+                        isCustomPrimaryKey: boolean;
+                        primaryKeyFieldName: string;
+                        sortKeyFieldNames: never[];
+                    };
+                };
             };
             enums: {};
             nonModels: {};

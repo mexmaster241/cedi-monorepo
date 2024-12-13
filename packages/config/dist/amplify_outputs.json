@@ -1,242 +1,506 @@
 {
     "auth": {
-      "user_pool_id": "us-east-1_KkzCqGJpn",
-      "aws_region": "us-east-1",
-      "user_pool_client_id": "4b51i61s3d4n52t03m7055j995",
-      "identity_pool_id": "us-east-1:fc76ccef-b20b-4b4c-95c5-91ed14fb00e4",
-      "mfa_methods": [],
-      "standard_required_attributes": [
-        "email",
-        "given_name",
-        "family_name"
-      ],
-      "username_attributes": [
-        "email"
-      ],
-      "user_verification_types": [
-        "email"
-      ],
-      "mfa_configuration": "NONE",
-      "password_policy": {
-        "min_length": 8,
-        "require_lowercase": true,
-        "require_numbers": true,
-        "require_symbols": true,
-        "require_uppercase": true
-      },
-      "unauthenticated_identities_enabled": true
+        "user_pool_id": "us-east-1_2hdU0lElz",
+        "aws_region": "us-east-1",
+        "user_pool_client_id": "4puo4vtm97om499afpba1veden",
+        "identity_pool_id": "us-east-1:7b20ba25-e291-47a4-b784-b9b7da2f559e",
+        "mfa_methods": [],
+        "standard_required_attributes": [
+            "email",
+            "given_name",
+            "family_name"
+        ],
+        "username_attributes": [
+            "email"
+        ],
+        "user_verification_types": [
+            "email"
+        ],
+        "groups": [],
+        "mfa_configuration": "NONE",
+        "password_policy": {
+            "min_length": 8,
+            "require_lowercase": true,
+            "require_numbers": true,
+            "require_symbols": true,
+            "require_uppercase": true
+        },
+        "unauthenticated_identities_enabled": true
     },
     "data": {
-      "url": "https://4q564sae4jf47bnjgodlitkhfe.appsync-api.us-east-1.amazonaws.com/graphql",
-      "aws_region": "us-east-1",
-      "api_key": "da2-cjmhxfwfnrappnvmrieansfmxy",
-      "default_authorization_type": "AMAZON_COGNITO_USER_POOLS",
-      "authorization_types": [
-        "API_KEY",
-        "AWS_IAM"
-      ],
-      "model_introspection": {
-        "version": 1,
-        "models": {
-          "User": {
-            "name": "User",
-            "fields": {
-              "id": {
-                "name": "id",
-                "isArray": false,
-                "type": "ID",
-                "isRequired": true,
-                "attributes": []
-              },
-              "email": {
-                "name": "email",
-                "isArray": false,
-                "type": "String",
-                "isRequired": true,
-                "attributes": []
-              },
-              "givenName": {
-                "name": "givenName",
-                "isArray": false,
-                "type": "String",
-                "isRequired": true,
-                "attributes": []
-              },
-              "familyName": {
-                "name": "familyName",
-                "isArray": false,
-                "type": "String",
-                "isRequired": true,
-                "attributes": []
-              },
-              "clabe": {
-                "name": "clabe",
-                "isArray": false,
-                "type": "String",
-                "isRequired": false,
-                "attributes": []
-              },
-              "balance": {
-                "name": "balance",
-                "isArray": false,
-                "type": "Float",
-                "isRequired": false,
-                "attributes": []
-              },
-              "lastLogin": {
-                "name": "lastLogin",
-                "isArray": false,
-                "type": "AWSDateTime",
-                "isRequired": false,
-                "attributes": []
-              },
-              "owner": {
-                "name": "owner",
-                "isArray": false,
-                "type": "String",
-                "isRequired": false,
-                "attributes": []
-              },
-              "createdAt": {
-                "name": "createdAt",
-                "isArray": false,
-                "type": "AWSDateTime",
-                "isRequired": false,
-                "attributes": [],
-                "isReadOnly": true
-              },
-              "updatedAt": {
-                "name": "updatedAt",
-                "isArray": false,
-                "type": "AWSDateTime",
-                "isRequired": false,
-                "attributes": [],
-                "isReadOnly": true
-              }
-            },
-            "syncable": true,
-            "pluralName": "Users",
-            "attributes": [
-              {
-                "type": "model",
-                "properties": {}
-              },
-              {
-                "type": "auth",
-                "properties": {
-                  "rules": [
-                    {
-                      "provider": "userPools",
-                      "ownerField": "owner",
-                      "allow": "owner",
-                      "operations": [
-                        "read",
-                        "update"
-                      ],
-                      "identityClaim": "cognito:username"
+        "url": "https://hrufjumoe5grrgs7yks2uhhupi.appsync-api.us-east-1.amazonaws.com/graphql",
+        "aws_region": "us-east-1",
+        "api_key": "da2-2j7rqojen5g3njamhxwq4dddiq",
+        "default_authorization_type": "AMAZON_COGNITO_USER_POOLS",
+        "authorization_types": [
+            "API_KEY",
+            "AWS_IAM"
+        ],
+        "model_introspection": {
+            "version": 1,
+            "models": {
+                "User": {
+                    "name": "User",
+                    "fields": {
+                        "id": {
+                            "name": "id",
+                            "isArray": false,
+                            "type": "ID",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "email": {
+                            "name": "email",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "givenName": {
+                            "name": "givenName",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "familyName": {
+                            "name": "familyName",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "clabe": {
+                            "name": "clabe",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": false,
+                            "attributes": []
+                        },
+                        "balance": {
+                            "name": "balance",
+                            "isArray": false,
+                            "type": "Float",
+                            "isRequired": false,
+                            "attributes": []
+                        },
+                        "lastLogin": {
+                            "name": "lastLogin",
+                            "isArray": false,
+                            "type": "AWSDateTime",
+                            "isRequired": false,
+                            "attributes": []
+                        },
+                        "owner": {
+                            "name": "owner",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": false,
+                            "attributes": []
+                        },
+                        "createdAt": {
+                            "name": "createdAt",
+                            "isArray": false,
+                            "type": "AWSDateTime",
+                            "isRequired": false,
+                            "attributes": [],
+                            "isReadOnly": true
+                        },
+                        "updatedAt": {
+                            "name": "updatedAt",
+                            "isArray": false,
+                            "type": "AWSDateTime",
+                            "isRequired": false,
+                            "attributes": [],
+                            "isReadOnly": true
+                        }
                     },
-                    {
-                      "allow": "public",
-                      "provider": "apiKey",
-                      "operations": [
-                        "create"
-                      ]
+                    "syncable": true,
+                    "pluralName": "Users",
+                    "attributes": [
+                        {
+                            "type": "model",
+                            "properties": {}
+                        },
+                        {
+                            "type": "auth",
+                            "properties": {
+                                "rules": [
+                                    {
+                                        "provider": "userPools",
+                                        "ownerField": "owner",
+                                        "allow": "owner",
+                                        "operations": [
+                                            "read",
+                                            "update"
+                                        ],
+                                        "identityClaim": "cognito:username"
+                                    },
+                                    {
+                                        "allow": "public",
+                                        "provider": "apiKey",
+                                        "operations": [
+                                            "create"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "primaryKeyInfo": {
+                        "isCustomPrimaryKey": false,
+                        "primaryKeyFieldName": "id",
+                        "sortKeyFieldNames": []
                     }
-                  ]
-                }
-              }
-            ],
-            "primaryKeyInfo": {
-              "isCustomPrimaryKey": false,
-              "primaryKeyFieldName": "id",
-              "sortKeyFieldNames": []
-            }
-          },
-          "ClabeSequence": {
-            "name": "ClabeSequence",
-            "fields": {
-              "id": {
-                "name": "id",
-                "isArray": false,
-                "type": "String",
-                "isRequired": true,
-                "attributes": []
-              },
-              "lastSequence": {
-                "name": "lastSequence",
-                "isArray": false,
-                "type": "Int",
-                "isRequired": true,
-                "attributes": []
-              },
-              "createdAt": {
-                "name": "createdAt",
-                "isArray": false,
-                "type": "AWSDateTime",
-                "isRequired": false,
-                "attributes": [],
-                "isReadOnly": true
-              },
-              "updatedAt": {
-                "name": "updatedAt",
-                "isArray": false,
-                "type": "AWSDateTime",
-                "isRequired": false,
-                "attributes": [],
-                "isReadOnly": true
-              }
-            },
-            "syncable": true,
-            "pluralName": "ClabeSequences",
-            "attributes": [
-              {
-                "type": "model",
-                "properties": {}
-              },
-              {
-                "type": "key",
-                "properties": {
-                  "fields": [
-                    "id"
-                  ]
-                }
-              },
-              {
-                "type": "auth",
-                "properties": {
-                  "rules": [
-                    {
-                      "allow": "public",
-                      "provider": "apiKey",
-                      "operations": [
-                        "read",
-                        "update"
-                      ]
+                },
+                "ClabeSequence": {
+                    "name": "ClabeSequence",
+                    "fields": {
+                        "id": {
+                            "name": "id",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "lastSequence": {
+                            "name": "lastSequence",
+                            "isArray": false,
+                            "type": "Int",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "createdAt": {
+                            "name": "createdAt",
+                            "isArray": false,
+                            "type": "AWSDateTime",
+                            "isRequired": false,
+                            "attributes": [],
+                            "isReadOnly": true
+                        },
+                        "updatedAt": {
+                            "name": "updatedAt",
+                            "isArray": false,
+                            "type": "AWSDateTime",
+                            "isRequired": false,
+                            "attributes": [],
+                            "isReadOnly": true
+                        }
                     },
-                    {
-                      "provider": "userPools",
-                      "ownerField": "owner",
-                      "allow": "owner",
-                      "operations": [
-                        "read",
-                        "update"
-                      ],
-                      "identityClaim": "cognito:username"
+                    "syncable": true,
+                    "pluralName": "ClabeSequences",
+                    "attributes": [
+                        {
+                            "type": "model",
+                            "properties": {}
+                        },
+                        {
+                            "type": "key",
+                            "properties": {
+                                "fields": [
+                                    "id"
+                                ]
+                            }
+                        },
+                        {
+                            "type": "auth",
+                            "properties": {
+                                "rules": [
+                                    {
+                                        "allow": "public",
+                                        "provider": "apiKey",
+                                        "operations": [
+                                            "read",
+                                            "update"
+                                        ]
+                                    },
+                                    {
+                                        "provider": "userPools",
+                                        "ownerField": "owner",
+                                        "allow": "owner",
+                                        "operations": [
+                                            "read",
+                                            "update"
+                                        ],
+                                        "identityClaim": "cognito:username"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "primaryKeyInfo": {
+                        "isCustomPrimaryKey": false,
+                        "primaryKeyFieldName": "id",
+                        "sortKeyFieldNames": []
                     }
-                  ]
+                },
+                "Transaction": {
+                    "name": "Transaction",
+                    "fields": {
+                        "id": {
+                            "name": "id",
+                            "isArray": false,
+                            "type": "ID",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "userId": {
+                            "name": "userId",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "type": {
+                            "name": "type",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "status": {
+                            "name": "status",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "amount": {
+                            "name": "amount",
+                            "isArray": false,
+                            "type": "Float",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "commission": {
+                            "name": "commission",
+                            "isArray": false,
+                            "type": "Float",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "finalAmount": {
+                            "name": "finalAmount",
+                            "isArray": false,
+                            "type": "Float",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "paymentType": {
+                            "name": "paymentType",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": false,
+                            "attributes": []
+                        },
+                        "reference": {
+                            "name": "reference",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": false,
+                            "attributes": []
+                        },
+                        "beneficiaryName": {
+                            "name": "beneficiaryName",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": false,
+                            "attributes": []
+                        },
+                        "beneficiaryBank": {
+                            "name": "beneficiaryBank",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": false,
+                            "attributes": []
+                        },
+                        "accountNumber": {
+                            "name": "accountNumber",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": false,
+                            "attributes": []
+                        },
+                        "concept": {
+                            "name": "concept",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": false,
+                            "attributes": []
+                        },
+                        "concept2": {
+                            "name": "concept2",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": false,
+                            "attributes": []
+                        },
+                        "receiptUrl": {
+                            "name": "receiptUrl",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": false,
+                            "attributes": []
+                        },
+                        "createdAt": {
+                            "name": "createdAt",
+                            "isArray": false,
+                            "type": "AWSDateTime",
+                            "isRequired": false,
+                            "attributes": []
+                        },
+                        "updatedAt": {
+                            "name": "updatedAt",
+                            "isArray": false,
+                            "type": "AWSDateTime",
+                            "isRequired": false,
+                            "attributes": []
+                        },
+                        "balanceAfterTransaction": {
+                            "name": "balanceAfterTransaction",
+                            "isArray": false,
+                            "type": "Float",
+                            "isRequired": false,
+                            "attributes": []
+                        }
+                    },
+                    "syncable": true,
+                    "pluralName": "Transactions",
+                    "attributes": [
+                        {
+                            "type": "model",
+                            "properties": {}
+                        },
+                        {
+                            "type": "auth",
+                            "properties": {
+                                "rules": [
+                                    {
+                                        "provider": "userPools",
+                                        "ownerField": "owner",
+                                        "allow": "owner",
+                                        "operations": [
+                                            "read"
+                                        ],
+                                        "identityClaim": "cognito:username"
+                                    },
+                                    {
+                                        "allow": "public",
+                                        "provider": "apiKey",
+                                        "operations": [
+                                            "create",
+                                            "read"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "primaryKeyInfo": {
+                        "isCustomPrimaryKey": false,
+                        "primaryKeyFieldName": "id",
+                        "sortKeyFieldNames": []
+                    }
+                },
+                "Contact": {
+                    "name": "Contact",
+                    "fields": {
+                        "id": {
+                            "name": "id",
+                            "isArray": false,
+                            "type": "ID",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "userId": {
+                            "name": "userId",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "name": {
+                            "name": "name",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "type": {
+                            "name": "type",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "accountNumber": {
+                            "name": "accountNumber",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "bank": {
+                            "name": "bank",
+                            "isArray": false,
+                            "type": "String",
+                            "isRequired": true,
+                            "attributes": []
+                        },
+                        "createdAt": {
+                            "name": "createdAt",
+                            "isArray": false,
+                            "type": "AWSDateTime",
+                            "isRequired": false,
+                            "attributes": [],
+                            "isReadOnly": true
+                        },
+                        "updatedAt": {
+                            "name": "updatedAt",
+                            "isArray": false,
+                            "type": "AWSDateTime",
+                            "isRequired": false,
+                            "attributes": [],
+                            "isReadOnly": true
+                        }
+                    },
+                    "syncable": true,
+                    "pluralName": "Contacts",
+                    "attributes": [
+                        {
+                            "type": "model",
+                            "properties": {}
+                        },
+                        {
+                            "type": "auth",
+                            "properties": {
+                                "rules": [
+                                    {
+                                        "provider": "userPools",
+                                        "ownerField": "owner",
+                                        "allow": "owner",
+                                        "operations": [
+                                            "create",
+                                            "read",
+                                            "update",
+                                            "delete"
+                                        ],
+                                        "identityClaim": "cognito:username"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "primaryKeyInfo": {
+                        "isCustomPrimaryKey": false,
+                        "primaryKeyFieldName": "id",
+                        "sortKeyFieldNames": []
+                    }
                 }
-              }
-            ],
-            "primaryKeyInfo": {
-              "isCustomPrimaryKey": false,
-              "primaryKeyFieldName": "id",
-              "sortKeyFieldNames": []
-            }
-          }
-        },
-        "enums": {},
-        "nonModels": {}
-      }
+            },
+            "enums": {},
+            "nonModels": {}
+        }
     },
-    "version": "1.1"
-  }
+    "version": "1.3"
+}
