@@ -10,25 +10,65 @@ import {
 } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 
-interface TransaccionesTableProps {
-  transactions: Array<{
-    id: string;
-    type: string;
-    status: string;
-    amount: number;
-    commission: number;
-    finalAmount: number;
-    reference: string | null;
-    beneficiaryName: string | null;
-    createdAt: string | null;
-  }>;
-  loading: boolean;
+interface Movement {
+  id: string;
+  category: string;      // 'WIRE' | 'INTERNAL'
+  direction: string;     // 'INBOUND' | 'OUTBOUND'
+  status: string;        // 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REVERSED'
+  amount: number;
+  commission: number;
+  finalAmount: number;
+  trackingId: string;
+  externalReference?: string;
+  internalReference?: string;
+  counterpartyName: string;
+  counterpartyBank: string;
+  counterpartyClabe?: string;
+  counterpartyEmail?: string;
+  concept?: string;
+  createdAt?: string;
 }
 
-export function TransaccionesTable({ transactions, loading }: TransaccionesTableProps) {
+interface TransaccionesTableProps {
+  movements: Movement[];
+  loading: boolean;
+  error?: string | null;
+}
+
+export function TransaccionesTable({ movements, loading, error }: TransaccionesTableProps) {
   if (loading) {
     return <Skeleton className="w-full h-[400px]" />;
   }
+
+  if (error) {
+    return (
+      <div className="w-full p-4 text-center text-red-600">
+        {error}
+      </div>
+    );
+  }
+
+  const getTypeLabel = (category: string, direction: string) => {
+    if (category === 'WIRE') {
+      return direction === 'INBOUND' ? 'Depósito' : 'Retiro';
+    }
+    return category === 'INTERNAL' ? 'Mensualidad' : '-';
+  };
+
+  const getStatusLabel = (status: string) => {
+    const statusMap: Record<string, string> = {
+      'PENDING': 'En espera',
+      'PROCESSING': 'Procesando',
+      'COMPLETED': 'Liquidado',
+      'FAILED': 'Cancelado',
+      'REVERSED': 'Devuelto'
+    };
+    return statusMap[status] || status;
+  };
+
+  const getReference = (movement: Movement) => {
+    return movement.externalReference || movement.internalReference || movement.trackingId || '-';
+  };
 
   return (
     <Table>
@@ -38,30 +78,36 @@ export function TransaccionesTable({ transactions, loading }: TransaccionesTable
           <TableHead>Tipo</TableHead>
           <TableHead>Estatus</TableHead>
           <TableHead>Referencia</TableHead>
-          <TableHead>Beneficiario</TableHead>
+          <TableHead>Beneficiario/Remitente</TableHead>
+          <TableHead>Banco</TableHead>
           <TableHead>Monto</TableHead>
           <TableHead>Comisión</TableHead>
           <TableHead>Monto Final</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {transactions?.length === 0 ? (
+        {movements.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={8} className="text-center">
+            <TableCell colSpan={9} className="text-center">
               No hay transacciones disponibles
             </TableCell>
           </TableRow>
         ) : (
-          transactions?.map((tx) => (
-            <TableRow key={tx.id}>
-              <TableCell>{tx.createdAt ? new Date(tx.createdAt).toLocaleString() : '-'}</TableCell>
-              <TableCell>{tx.type}</TableCell>
-              <TableCell>{tx.status}</TableCell>
-              <TableCell>{tx.reference || '-'}</TableCell>
-              <TableCell>{tx.beneficiaryName || '-'}</TableCell>
-              <TableCell>${tx.amount.toFixed(2)}</TableCell>
-              <TableCell>${tx.commission.toFixed(2)}</TableCell>
-              <TableCell>${tx.finalAmount.toFixed(2)}</TableCell>
+          movements.map((movement) => (
+            <TableRow key={movement.id}>
+              <TableCell>
+                {movement.createdAt ? new Date(movement.createdAt).toLocaleString() : '-'}
+              </TableCell>
+              <TableCell>
+                {getTypeLabel(movement.category, movement.direction)}
+              </TableCell>
+              <TableCell>{getStatusLabel(movement.status)}</TableCell>
+              <TableCell>{getReference(movement)}</TableCell>
+              <TableCell>{movement.counterpartyName}</TableCell>
+              <TableCell>{movement.counterpartyBank}</TableCell>
+              <TableCell>${movement.amount.toFixed(2)}</TableCell>
+              <TableCell>${movement.commission.toFixed(2)}</TableCell>
+              <TableCell>${movement.finalAmount.toFixed(2)}</TableCell>
             </TableRow>
           ))
         )}

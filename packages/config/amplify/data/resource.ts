@@ -2,20 +2,21 @@ import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 
 const schema = a.schema({
   User: a
-    .model({
-      email: a.string().required(),
-      givenName: a.string().required(),
-      familyName: a.string().required(),
-      clabe: a.string(),
-      balance: a.float().default(0),
-      lastLogin: a.datetime(),
-      owner: a.string(),
-      transactions: a.hasMany('Transaction', 'userId'),
-    })
-    .authorization((allow) => [
-      allow.owner().to(['read', 'update']),
-      allow.publicApiKey().to(['create'])
-    ]),
+  .model({
+    email: a.string().required(),
+    givenName: a.string().required(),
+    familyName: a.string().required(),
+    clabe: a.string(),
+    balance: a.float().default(0),
+    lastLogin: a.datetime(),
+    owner: a.string(),
+    movements: a.hasMany('Movement', 'userId'),
+    contacts: a.hasMany('Contact', 'userId'),
+  })
+  .authorization((allow) => [
+    allow.owner().to(['read', 'update']),
+    allow.publicApiKey().to(['create'])
+  ]),
     
   ClabeSequence: a
     .model({
@@ -27,46 +28,57 @@ const schema = a.schema({
       allow.owner().to(['read', 'update']),
     ]),
 
-  Transaction: a
+    Movement: a
     .model({
       userId: a.string().required(),
       user: a.belongsTo('User', 'userId'),
-      type: a.string().required(),
-      status: a.string().required(),
       
+      // Movement classification
+      category: a.string().required(), // Values: 'WIRE' | 'INTERNAL'
+      direction: a.string().required(), // Values: 'INBOUND' | 'OUTBOUND'
+      
+      // Status tracking
+      status: a.string().required(), // Values: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REVERSED'
+      
+      // Financial details
       amount: a.float().required(),
       commission: a.float().required(),
       finalAmount: a.float().required(),
       
-      paymentType: a.string(),
-      reference: a.string(),
+      // Reference information
+      trackingId: a.string().required(),
+      externalReference: a.string(),
+      internalReference: a.string(),
       
-      beneficiaryName: a.string(),
-      beneficiaryBank: a.string(),
-      accountNumber: a.string(),
+      // Counterparty information - since Gen 2 doesn't support nested models directly
+      counterpartyName: a.string().required(),
+      counterpartyBank: a.string().required(),
+      counterpartyClabe: a.string(),
+      counterpartyEmail: a.string(),
       
+      // Additional context
       concept: a.string(),
-      concept2: a.string(),
+      metadata: a.string(), // We'll store JSON as a string since Gen 2 doesn't have direct JSON type
       
-      receiptUrl: a.string(),
-      
+      // Timestamps
       createdAt: a.datetime(),
       updatedAt: a.datetime(),
-      
-      balanceAfterTransaction: a.float(),
+      completedAt: a.datetime(),
     })
     .authorization((allow) => [
       allow.owner().to(['read']),
-      allow.publicApiKey().to(['create', 'read'])
+      allow.publicApiKey().to(['create'])
     ]),
 
   Contact: a
     .model({
       userId: a.string().required(),
+      user: a.belongsTo('User', 'userId'),
       name: a.string().required(),
-      type: a.string().required(),
-      accountNumber: a.string().required(),
       bank: a.string().required(),
+      clabe: a.string().required(),
+      alias: a.string(),
+      email: a.string(),
     })
     .authorization((allow) => [
       allow.owner().to(['create', 'read', 'update', 'delete'])

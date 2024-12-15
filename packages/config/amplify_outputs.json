@@ -98,11 +98,27 @@
               "isRequired": false,
               "attributes": []
             },
-            "transactions": {
-              "name": "transactions",
+            "movements": {
+              "name": "movements",
               "isArray": true,
               "type": {
-                "model": "Transaction"
+                "model": "Movement"
+              },
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true,
+              "association": {
+                "connectionType": "HAS_MANY",
+                "associatedWith": [
+                  "userId"
+                ]
+              }
+            },
+            "contacts": {
+              "name": "contacts",
+              "isArray": true,
+              "type": {
+                "model": "Contact"
               },
               "isRequired": false,
               "attributes": [],
@@ -250,8 +266,8 @@
             "sortKeyFieldNames": []
           }
         },
-        "Transaction": {
-          "name": "Transaction",
+        "Movement": {
+          "name": "Movement",
           "fields": {
             "id": {
               "name": "id",
@@ -282,8 +298,15 @@
                 ]
               }
             },
-            "type": {
-              "name": "type",
+            "category": {
+              "name": "category",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "direction": {
+              "name": "direction",
               "isArray": false,
               "type": "String",
               "isRequired": true,
@@ -317,36 +340,50 @@
               "isRequired": true,
               "attributes": []
             },
-            "paymentType": {
-              "name": "paymentType",
+            "trackingId": {
+              "name": "trackingId",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "externalReference": {
+              "name": "externalReference",
               "isArray": false,
               "type": "String",
               "isRequired": false,
               "attributes": []
             },
-            "reference": {
-              "name": "reference",
+            "internalReference": {
+              "name": "internalReference",
               "isArray": false,
               "type": "String",
               "isRequired": false,
               "attributes": []
             },
-            "beneficiaryName": {
-              "name": "beneficiaryName",
+            "counterpartyName": {
+              "name": "counterpartyName",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "counterpartyBank": {
+              "name": "counterpartyBank",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "counterpartyClabe": {
+              "name": "counterpartyClabe",
               "isArray": false,
               "type": "String",
               "isRequired": false,
               "attributes": []
             },
-            "beneficiaryBank": {
-              "name": "beneficiaryBank",
-              "isArray": false,
-              "type": "String",
-              "isRequired": false,
-              "attributes": []
-            },
-            "accountNumber": {
-              "name": "accountNumber",
+            "counterpartyEmail": {
+              "name": "counterpartyEmail",
               "isArray": false,
               "type": "String",
               "isRequired": false,
@@ -359,15 +396,8 @@
               "isRequired": false,
               "attributes": []
             },
-            "concept2": {
-              "name": "concept2",
-              "isArray": false,
-              "type": "String",
-              "isRequired": false,
-              "attributes": []
-            },
-            "receiptUrl": {
-              "name": "receiptUrl",
+            "metadata": {
+              "name": "metadata",
               "isArray": false,
               "type": "String",
               "isRequired": false,
@@ -387,16 +417,16 @@
               "isRequired": false,
               "attributes": []
             },
-            "balanceAfterTransaction": {
-              "name": "balanceAfterTransaction",
+            "completedAt": {
+              "name": "completedAt",
               "isArray": false,
-              "type": "Float",
+              "type": "AWSDateTime",
               "isRequired": false,
               "attributes": []
             }
           },
           "syncable": true,
-          "pluralName": "Transactions",
+          "pluralName": "Movements",
           "attributes": [
             {
               "type": "model",
@@ -419,8 +449,7 @@
                     "allow": "public",
                     "provider": "apiKey",
                     "operations": [
-                      "create",
-                      "read"
+                      "create"
                     ]
                   }
                 ]
@@ -450,22 +479,23 @@
               "isRequired": true,
               "attributes": []
             },
+            "user": {
+              "name": "user",
+              "isArray": false,
+              "type": {
+                "model": "User"
+              },
+              "isRequired": false,
+              "attributes": [],
+              "association": {
+                "connectionType": "BELONGS_TO",
+                "targetNames": [
+                  "userId"
+                ]
+              }
+            },
             "name": {
               "name": "name",
-              "isArray": false,
-              "type": "String",
-              "isRequired": true,
-              "attributes": []
-            },
-            "type": {
-              "name": "type",
-              "isArray": false,
-              "type": "String",
-              "isRequired": true,
-              "attributes": []
-            },
-            "accountNumber": {
-              "name": "accountNumber",
               "isArray": false,
               "type": "String",
               "isRequired": true,
@@ -476,6 +506,27 @@
               "isArray": false,
               "type": "String",
               "isRequired": true,
+              "attributes": []
+            },
+            "clabe": {
+              "name": "clabe",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "alias": {
+              "name": "alias",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "email": {
+              "name": "email",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
               "attributes": []
             },
             "createdAt": {

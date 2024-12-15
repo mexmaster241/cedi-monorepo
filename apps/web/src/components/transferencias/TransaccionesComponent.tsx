@@ -25,44 +25,85 @@ interface FilterState {
   };
 }
 
+interface Movement {
+  id: string;
+  category: string;      // 'WIRE' | 'INTERNAL'
+  direction: string;     // 'INBOUND' | 'OUTBOUND'
+  status: string;        // 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REVERSED'
+  amount: number;
+  commission: number;
+  finalAmount: number;
+  trackingId: string;
+  externalReference?: string;
+  internalReference?: string;
+  counterpartyName: string;
+  counterpartyBank: string;
+  counterpartyClabe?: string;
+  counterpartyEmail?: string;
+  concept?: string;
+  createdAt?: string;
+}
+
+
+
 export default function MovimientosFilter() {
-  const [transactions, setTransactions] = useState<Array<{
-    id: string;
-    type: string;
-    status: string;
-    amount: number;
-    commission: number;
-    finalAmount: number;
-    reference: string | null;
-    beneficiaryName: string | null;
-    createdAt: string | null;
-  }>>([]);
+  // Initialize states with proper typing
+  const [movements, setMovements] = useState<Movement[]>([]);
   const [loading, setLoading] = useState(true);
-  const client = generateClient<Schema>();
+  const client = useRef(generateClient<Schema>());  // Use useRef to maintain client reference
 
   useEffect(() => {
-    async function fetchTransactions() {
+    // Define our async function
+    const fetchMovements = async () => {
+      // Guard clause to prevent unnecessary execution
+      if (!client.current) {
+        console.log('Client not initialized');
+        return;
+      }
+
       try {
         setLoading(true);
-        console.log("Getting current user...");
-        const { username } = await getCurrentUser();
-        console.log("Current user:", username);
         
-        console.log("Fetching transactions...");
-        const { data } = await client.models.Transaction.list({
+        // Safely get the current user
+        let username;
+        try {
+          const currentUser = await getCurrentUser();
+          username = currentUser.username;
+        } catch (authError) {
+          console.log('User not authenticated');
+          return;
+        }
+        
+        // Safely fetch movements with null checking
+        const response = await client.current.models.Movement.list({
           filter: { userId: { eq: username } },
           authMode: 'userPool',
-          selectionSet: ['id', 'type', 'status', 'amount', 'commission', 'finalAmount', 'reference', 'beneficiaryName', 'createdAt']
         });
-        console.log("Transactions data:", data);
-        
-        setTransactions(data);
-      } catch (err: unknown) {
-        
+
+        // Guard clause for response data
+        if (!response?.data) {
+          console.log('No movement data received');
+          setMovements([]);
+          return;
+        }
+
+        // Sort movements safely with optional chaining
+        const sortedMovements = [...response.data].sort((a, b) => {
+          return new Date(b?.createdAt ?? 0).getTime() - 
+                 new Date(a?.createdAt ?? 0).getTime();
+        });
+
+        setMovements(sortedMovements as Movement[]);
+      } catch (err) {
+        console.error('Error fetching movements:', err);
+        setMovements([]);
+      } finally {
+        setLoading(false);
       }
-    }
-    fetchTransactions();
-  }, []);
+    };
+
+    fetchMovements();
+  }, []); 
 
   const [search, setSearch] = useState("")
   const [dateTimeRange, setDateTimeRange] = useState<FilterState>()
@@ -73,21 +114,46 @@ export default function MovimientosFilter() {
   const handleFilter = async () => {
     try {
       setLoading(true);
-      let filter: any = {};
+      const { username } = await getCurrentUser();
+      
+      let filter: any = {
+        userId: { eq: username }
+      };
       
       if (search) {
         filter.or = [
-          { reference: { contains: search } },
-          { beneficiaryName: { contains: search } }
+          { externalReference: { contains: search } },
+          { internalReference: { contains: search } },
+          { counterpartyName: { contains: search } }
         ];
       }
       
       if (tipoMovimiento !== 'todo') {
-        filter.type = { eq: tipoMovimiento };
+        // Map UI categories to schema categories
+        const categoryMap: Record<string, { category: string; direction: string }> = {
+          'deposito': { category: 'WIRE', direction: 'INBOUND' },
+          'retiro': { category: 'WIRE', direction: 'OUTBOUND' },
+          'mensualidad': { category: 'INTERNAL', direction: 'OUTBOUND' }
+        };
+        
+        if (categoryMap[tipoMovimiento]) {
+          filter.and = [
+            { category: { eq: categoryMap[tipoMovimiento].category } },
+            { direction: { eq: categoryMap[tipoMovimiento].direction } }
+          ];
+        }
       }
       
       if (estatusMovimiento !== 'todo') {
-        filter.status = { eq: estatusMovimiento };
+        // Map UI status to schema status
+        const statusMap: Record<string, string> = {
+          'liquidado': 'COMPLETED',
+          'devolucion': 'REVERSED',
+          'cancelacion': 'FAILED',
+          'en-espera': 'PENDING'
+        };
+        
+        filter.status = { eq: statusMap[estatusMovimiento] };
       }
       
       if (dateTimeRange?.dates) {
@@ -99,24 +165,14 @@ export default function MovimientosFilter() {
         };
       }
 
-      const { data } = await client.models.Transaction.list({
-        filter: filter,
-        authMode: 'userPool',
-        selectionSet: [
-          'id',
-          'type',
-          'status',
-          'amount',
-          'commission',
-          'finalAmount',
-          'reference',
-          'beneficiaryName',
-          'createdAt'
-        ]
+      const { data } = await client.current.models.Movement.list({
+        filter,
+        authMode: 'userPool'
       });
-      setTransactions(data);
+
+      setMovements(data as Movement[]);
     } catch (error) {
-      console.error('Error filtering transactions:', error);
+      console.error('Error filtering movements:', error);
     } finally {
       setLoading(false);
     }
@@ -186,7 +242,7 @@ export default function MovimientosFilter() {
         </div>
       </div>
       <TransaccionesTable 
-        transactions={transactions} 
+        movements={movements} 
         loading={loading} 
       />
     </div>

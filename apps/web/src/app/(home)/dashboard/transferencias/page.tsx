@@ -18,31 +18,33 @@ import {
 import MovimientosFilter from "@/components/transferencias/TransaccionesComponent"
 import { Transferir } from "@/components/transferencias/transferir"
 import {Schema} from "config/amplify/data/resource"
+import TransaccionesComponent from "@/components/transferencias/TransaccionesComponent"
 
 
 export default function TransferenciasPage() {
   const [clabe, setClabe] = useState("")
+  const [balance, setBalance] = useState<number>(0)
   const client = generateClient<Schema>()
   
   useEffect(() => {
-    async function fetchClabe() {
+    async function fetchUserData() {
       try {
         const { username } = await getCurrentUser();
         const userResult = await client.models.User.get({ 
           id: username,
         }, {
           authMode: 'userPool',
-          selectionSet: ['id', 'clabe', 'email']
+          selectionSet: ['id', 'clabe', 'email', 'balance']
         });
-        console.log("Current user:", username);
         console.log("User result:", userResult);
         setClabe(userResult.data?.clabe ?? "");
+        setBalance(userResult.data?.balance ?? 0);
       } catch (err) {
-        console.error("Error fetching CLABE:", err);
+        console.error("Error fetching user data:", err);
         setClabe("Error loading CLABE");
       }
     }
-    fetchClabe();
+    fetchUserData();
   }, []);
 
   const copyToClipboard = async (text: string) => {
@@ -78,7 +80,9 @@ export default function TransferenciasPage() {
         <Card className="p-4 transform transition-all duration-200 hover:scale-105 hover:shadow-lg">
           <div className="flex flex-col space-y-2">
             <span className="text-sm font-clash-display text-muted-foreground">Saldo Disponible</span>
-            <span className="font-clash-display">$45,678.90 MXN</span>
+            <span className="font-clash-display">
+              ${balance.toFixed(2)} MXN
+            </span>
           </div>
         </Card>
 
@@ -116,7 +120,7 @@ export default function TransferenciasPage() {
         <TabsContent value="movimientos">
           <Card className="p-4">
             <h2 className="text-lg font-clash-display mb-4">Movimientos Recientes</h2>
-            <MovimientosFilter />
+            <TransaccionesComponent />
             {/* Add transactions list here */}
           </Card>
         </TabsContent>
