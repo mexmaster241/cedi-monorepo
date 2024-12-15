@@ -1,9 +1,8 @@
 "use client"
-
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { DateTimeRange } from "./DateRange"
-import { useState, useRef, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { DateRange } from "react-day-picker"
 import {
   Select,
@@ -13,9 +12,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { TransaccionesTable } from "./TransaccionesTable"
-import { generateClient } from 'aws-amplify/api';
-import { type Schema } from 'config/amplify/data/resource';
-import { getCurrentUser } from 'aws-amplify/auth';
+import { Amplify } from 'aws-amplify'
+import { generateClient } from 'aws-amplify/api'
+import { type Schema } from 'config/amplify/data/resource'
+import { getCurrentUser } from 'aws-amplify/auth'
+import { amplifyConfig } from 'config';
+import { useRef } from 'react'
+
+Amplify.configure(amplifyConfig)
 
 interface FilterState {
   dates: DateRange;
@@ -27,9 +31,9 @@ interface FilterState {
 
 interface Movement {
   id: string;
-  category: string;      // 'WIRE' | 'INTERNAL'
-  direction: string;     // 'INBOUND' | 'OUTBOUND'
-  status: string;        // 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REVERSED'
+  category: string;      
+  direction: string;     
+  status: string;        
   amount: number;
   commission: number;
   finalAmount: number;
@@ -44,66 +48,64 @@ interface Movement {
   createdAt?: string;
 }
 
-
-
 export default function MovimientosFilter() {
-  // Initialize states with proper typing
   const [movements, setMovements] = useState<Movement[]>([]);
   const [loading, setLoading] = useState(true);
-  const client = useRef(generateClient<Schema>());  // Use useRef to maintain client reference
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Define our async function
-    const fetchMovements = async () => {
-      // Guard clause to prevent unnecessary execution
-      if (!client.current) {
-        console.log('Client not initialized');
-        return;
-      }
+    let isMounted = true;
 
+    async function fetchMovements() {
       try {
         setLoading(true);
-        
-        // Safely get the current user
-        let username;
-        try {
-          const currentUser = await getCurrentUser();
-          username = currentUser.username;
-        } catch (authError) {
-          console.log('User not authenticated');
-          return;
-        }
-        
-        // Safely fetch movements with null checking
-        const response = await client.current.models.Movement.list({
-          filter: { userId: { eq: username } },
-          authMode: 'userPool',
-        });
+        setError(null);
 
-        // Guard clause for response data
-        if (!response?.data) {
-          console.log('No movement data received');
-          setMovements([]);
-          return;
+        const currentUser = await getCurrentUser();
+        if (!currentUser?.username) {
+          throw new Error('No user authenticated');
         }
 
-        // Sort movements safely with optional chaining
-        const sortedMovements = [...response.data].sort((a, b) => {
-          return new Date(b?.createdAt ?? 0).getTime() - 
-                 new Date(a?.createdAt ?? 0).getTime();
+        const client = generateClient<Schema>();
+        
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const response = await client.models.Movement.list({
+          filter: { userId: { eq: currentUser.username } },
+          authMode: 'userPool'
         });
 
-        setMovements(sortedMovements as Movement[]);
+        if (isMounted) {
+          if (response?.data) {
+            const sortedMovements = [...response.data].sort((a, b) => {
+              return new Date(b?.createdAt ?? 0).getTime() - 
+                     new Date(a?.createdAt ?? 0).getTime();
+            });
+            setMovements(sortedMovements as Movement[]);
+          } else {
+            console.log('No movements found');
+            setMovements([]);
+          }
+        }
       } catch (err) {
         console.error('Error fetching movements:', err);
-        setMovements([]);
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Error fetching movements');
+          setMovements([]);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    };
+    }
 
     fetchMovements();
-  }, []); 
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const [search, setSearch] = useState("")
   const [dateTimeRange, setDateTimeRange] = useState<FilterState>()
@@ -165,7 +167,10 @@ export default function MovimientosFilter() {
         };
       }
 
-      const { data } = await client.current.models.Movement.list({
+      const client = generateClient<Schema>();
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const { data } = await client.models.Movement.list({
         filter,
         authMode: 'userPool'
       });
@@ -243,7 +248,8 @@ export default function MovimientosFilter() {
       </div>
       <TransaccionesTable 
         movements={movements} 
-        loading={loading} 
+        loading={loading}
+        error={error}
       />
     </div>
   )

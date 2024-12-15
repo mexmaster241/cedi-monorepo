@@ -87,7 +87,21 @@ export declare const amplifyConfig: {
                             isRequired: boolean;
                             attributes: never[];
                         };
-                        transactions: {
+                        movements: {
+                            name: string;
+                            isArray: boolean;
+                            type: {
+                                model: string;
+                            };
+                            isRequired: boolean;
+                            attributes: never[];
+                            isArrayNullable: boolean;
+                            association: {
+                                connectionType: string;
+                                associatedWith: string[];
+                            };
+                        };
+                        contacts: {
                             name: string;
                             isArray: boolean;
                             type: {
@@ -120,29 +134,7 @@ export declare const amplifyConfig: {
                     };
                     syncable: boolean;
                     pluralName: string;
-                    attributes: ({
-                        type: string;
-                        properties: {
-                            rules?: undefined;
-                        };
-                    } | {
-                        type: string;
-                        properties: {
-                            rules: ({
-                                provider: string;
-                                ownerField: string;
-                                allow: string;
-                                operations: string[];
-                                identityClaim: string;
-                            } | {
-                                allow: string;
-                                provider: string;
-                                operations: string[];
-                                ownerField?: undefined;
-                                identityClaim?: undefined;
-                            })[];
-                        };
-                    })[];
+                    attributes: any[];
                     primaryKeyInfo: {
                         isCustomPrimaryKey: boolean;
                         primaryKeyFieldName: string;
@@ -222,7 +214,7 @@ export declare const amplifyConfig: {
                         sortKeyFieldNames: never[];
                     };
                 };
-                Transaction: {
+                Movement: {
                     name: string;
                     fields: {
                         id: {
@@ -413,6 +405,19 @@ export declare const amplifyConfig: {
                             isRequired: boolean;
                             attributes: never[];
                         };
+                        user: {
+                            name: string;
+                            isArray: boolean;
+                            type: {
+                                model: string;
+                            };
+                            isRequired: boolean;
+                            attributes: never[];
+                            association: {
+                                connectionType: string;
+                                targetNames: string[];
+                            };
+                        };
                         name: {
                             name: string;
                             isArray: boolean;
@@ -420,21 +425,28 @@ export declare const amplifyConfig: {
                             isRequired: boolean;
                             attributes: never[];
                         };
-                        type: {
-                            name: string;
-                            isArray: boolean;
-                            type: string;
-                            isRequired: boolean;
-                            attributes: never[];
-                        };
-                        accountNumber: {
-                            name: string;
-                            isArray: boolean;
-                            type: string;
-                            isRequired: boolean;
-                            attributes: never[];
-                        };
                         bank: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        clabe: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        alias: {
+                            name: string;
+                            isArray: boolean;
+                            type: string;
+                            isRequired: boolean;
+                            attributes: never[];
+                        };
+                        email: {
                             name: string;
                             isArray: boolean;
                             type: string;
@@ -460,23 +472,7 @@ export declare const amplifyConfig: {
                     };
                     syncable: boolean;
                     pluralName: string;
-                    attributes: ({
-                        type: string;
-                        properties: {
-                            rules?: undefined;
-                        };
-                    } | {
-                        type: string;
-                        properties: {
-                            rules: {
-                                provider: string;
-                                ownerField: string;
-                                allow: string;
-                                operations: string[];
-                                identityClaim: string;
-                            }[];
-                        };
-                    })[];
+                    attributes: any[];
                     primaryKeyInfo: {
                         isCustomPrimaryKey: boolean;
                         primaryKeyFieldName: string;

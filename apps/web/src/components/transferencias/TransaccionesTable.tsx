@@ -74,21 +74,21 @@ export function TransaccionesTable({ movements, loading, error }: TransaccionesT
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Fecha</TableHead>
-          <TableHead>Tipo</TableHead>
-          <TableHead>Estatus</TableHead>
-          <TableHead>Referencia</TableHead>
-          <TableHead>Beneficiario/Remitente</TableHead>
-          <TableHead>Banco</TableHead>
-          <TableHead>Monto</TableHead>
-          <TableHead>Comisión</TableHead>
-          <TableHead>Monto Final</TableHead>
+          <TableHead className="text-center font-clash-display">Fecha</TableHead>
+          <TableHead className="text-center font-clash-display">Tipo</TableHead>
+          <TableHead className="text-center font-clash-display">Estatus</TableHead>
+          <TableHead className="text-center font-clash-display">Referencia</TableHead>
+          <TableHead className="text-center font-clash-display">Beneficiario/Remitente</TableHead>
+          <TableHead className="text-center font-clash-display">Banco</TableHead>
+          <TableHead className="text-center font-clash-display">Monto</TableHead>
+          <TableHead className="text-center font-clash-display">Comisión</TableHead>
+          <TableHead className="text-center font-clash-display">Monto Final</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {movements.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={9} className="text-center">
+            <TableCell colSpan={9} className="text-center font-clash-display">
               No hay transacciones disponibles
             </TableCell>
           </TableRow>

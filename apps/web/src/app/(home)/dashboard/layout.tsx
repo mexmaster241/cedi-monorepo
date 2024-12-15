@@ -6,6 +6,11 @@ import { getCurrentUser } from 'aws-amplify/auth'
 import { BankingSidebar } from "@/components/components-banking-sidebar"
 import { useToast } from "@/hooks/use-toast"
 import Image from 'next/image'
+import { Amplify } from 'aws-amplify'
+import { amplifyConfig } from 'config'
+import { Toaster } from "@/components/ui/toaster";
+
+Amplify.configure(amplifyConfig)
 
 export default function DashboardLayout({
   children,
@@ -40,5 +45,10 @@ export default function DashboardLayout({
     </div>
   }
 
-  return <BankingSidebar>{children}</BankingSidebar>
+  return (
+    <>
+      <BankingSidebar>{children}</BankingSidebar>
+      <Toaster />
+    </>
+  )
 }

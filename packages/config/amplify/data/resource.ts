@@ -66,7 +66,7 @@ const schema = a.schema({
       completedAt: a.datetime(),
     })
     .authorization((allow) => [
-      allow.owner().to(['read']),
+      allow.owner().to(['read', 'create', 'update']),
       allow.publicApiKey().to(['create'])
     ]),
 

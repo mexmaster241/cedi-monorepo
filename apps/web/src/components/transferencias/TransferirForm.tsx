@@ -1,6 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import { generateClient } from 'aws-amplify/api'
+import { getCurrentUser } from 'aws-amplify/auth'
+import { type Schema } from 'config/amplify/data/resource'
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -32,6 +36,7 @@ export function TransferirForm() {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTab, setSelectedTab] = useState('clabe')
+  const [loading, setLoading] = useState(false)
 
   const filteredContacts = contacts.filter(contact => {
     const searchLower = searchQuery.toLowerCase()
@@ -41,24 +46,75 @@ export function TransferirForm() {
     )
   })
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const saveAccount = formData.get('saveAccount')
+    setLoading(true)
 
-    if (saveAccount) {
-      const newContact: Contact = {
-        id: Date.now().toString(),
-        type: selectedTab as 'clabe' | 'tarjeta' | 'celular',
-        value: formData.get(selectedTab) as string,
-        name: formData.get('beneficiaryName') as string,
-        bank: formData.get('institution') as string,
+    try {
+      const formData = new FormData(e.currentTarget)
+      const amount = parseFloat(formData.get('amount') as string)
+      
+      // Log form data
+      console.log('Form data:', {
+        amount,
+        beneficiaryName: formData.get('beneficiaryName'),
+        institution: formData.get('institution'),
+        clabe: formData.get('clabe'),
+        concept: formData.get('concept')
+      });
+
+      const client = generateClient<Schema>()
+      const currentUser = await getCurrentUser()
+      
+      console.log('Current user:', currentUser);
+
+      if (!currentUser?.username) {
+        throw new Error('No user authenticated');
       }
-      setContacts(prev => [...prev, newContact])
+
+      const movementData = {
+        userId: currentUser.username,
+        category: 'WIRE',
+        direction: 'OUTBOUND',
+        status: 'PENDING',
+        amount: amount,
+        commission: 0,
+        finalAmount: amount,
+        trackingId: `TRX-${Date.now()}`,
+        counterpartyName: formData.get('beneficiaryName') as string,
+        counterpartyBank: formData.get('institution') as string,
+        counterpartyClabe: formData.get('clabe') as string,
+        concept: formData.get('concept') as string,
+        internalReference: formData.get('reference') as string,
+        createdAt: new Date().toISOString(),
+      };
+
+      console.log('Creating movement with data:', movementData);
+
+      const response = await client.models.Movement.create(
+        movementData,
+        { authMode: 'userPool' }
+      );
+
+      console.log('Raw API Response:', response);
+
+      if (response.errors) {
+        // Log the specific API errors
+        console.error('API Errors:', response.errors);
+        throw new Error(response.errors[0]?.message || 'Failed to create movement');
+      }
+
+      if (response.data) {
+        toast.success("Transferencia iniciada correctamente");
+        e.currentTarget.reset();
+      }
+
+    } catch (error) {
+      console.error('Creation error:', error);
+      toast.error(error instanceof Error ? error.message : "Error al crear la transferencia");
+    } finally {
+      setLoading(false);
     }
-    
-    // Reset form
-    e.currentTarget.reset()
   }
 
   return (
@@ -260,8 +316,8 @@ export function TransferirForm() {
               </Label>
             </div>
 
-            <Button type="submit" className="w-full font-clash-display">
-              Realizar transferencia
+            <Button type="submit" className="w-full font-clash-display" disabled={loading}>
+              {loading ? "Procesando..." : "Realizar transferencia"}
             </Button>
           </form>
         </Card>
