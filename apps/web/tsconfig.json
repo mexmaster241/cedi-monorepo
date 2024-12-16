@@ -29,6 +29,9 @@
       "config": [
         "../../packages/config"
       ],
+      "utils": [
+        "../../packages/utils"
+      ],
       "ui": [
         "../../packages/ui"
       ]

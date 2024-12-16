@@ -15,9 +15,10 @@ const schema = a.schema({
   })
   .authorization((allow) => [
     allow.owner().to(['read', 'update']),
-    allow.publicApiKey().to(['create'])
-  ]),
+    allow.publicApiKey().to(['create', 'read', 'update']),
+    allow.group('authenticated').to(['read', 'update', 'create']),
     
+  ]),
   ClabeSequence: a
     .model({
       id: a.string().required(),
@@ -67,7 +68,8 @@ const schema = a.schema({
     })
     .authorization((allow) => [
       allow.owner().to(['read', 'create', 'update']),
-      allow.publicApiKey().to(['create'])
+      allow.publicApiKey().to(['create', 'read', 'update']),
+      allow.group('authenticated').to(['create', 'read', 'update']),
     ]),
 
   Contact: a

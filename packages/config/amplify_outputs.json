@@ -172,7 +172,22 @@
                     "allow": "public",
                     "provider": "apiKey",
                     "operations": [
+                      "create",
+                      "read",
+                      "update"
+                    ]
+                  },
+                  {
+                    "groupClaim": "cognito:groups",
+                    "provider": "userPools",
+                    "allow": "groups",
+                    "operations": [
+                      "read",
+                      "update",
                       "create"
+                    ],
+                    "groups": [
+                      "authenticated"
                     ]
                   }
                 ]
@@ -451,7 +466,22 @@
                     "allow": "public",
                     "provider": "apiKey",
                     "operations": [
-                      "create"
+                      "create",
+                      "read",
+                      "update"
+                    ]
+                  },
+                  {
+                    "groupClaim": "cognito:groups",
+                    "provider": "userPools",
+                    "allow": "groups",
+                    "operations": [
+                      "create",
+                      "read",
+                      "update"
+                    ],
+                    "groups": [
+                      "authenticated"
                     ]
                   }
                 ]
