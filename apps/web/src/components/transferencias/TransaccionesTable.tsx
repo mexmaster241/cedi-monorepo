@@ -95,19 +95,33 @@ export function TransaccionesTable({ movements, loading, error }: TransaccionesT
         ) : (
           movements.map((movement) => (
             <TableRow key={movement.id}>
-              <TableCell>
+              <TableCell className="text-center font-clash-display">
                 {movement.createdAt ? new Date(movement.createdAt).toLocaleString() : '-'}
               </TableCell>
-              <TableCell>
+              <TableCell className="text-center font-clash-display">
                 {getTypeLabel(movement.category, movement.direction)}
               </TableCell>
-              <TableCell>{getStatusLabel(movement.status)}</TableCell>
-              <TableCell>{getReference(movement)}</TableCell>
-              <TableCell>{movement.counterpartyName}</TableCell>
-              <TableCell>{movement.counterpartyBank}</TableCell>
-              <TableCell>${movement.amount.toFixed(2)}</TableCell>
-              <TableCell>${movement.commission.toFixed(2)}</TableCell>
-              <TableCell>${movement.finalAmount.toFixed(2)}</TableCell>
+              <TableCell className="text-center font-clash-display">
+                {getStatusLabel(movement.status)}
+              </TableCell>
+              <TableCell className="text-center font-clash-display">
+                {getReference(movement)}
+              </TableCell>
+              <TableCell className="text-center font-clash-display">
+                {movement.counterpartyName}
+              </TableCell>
+              <TableCell className="text-center font-clash-display">
+                {movement.counterpartyBank}
+              </TableCell>
+              <TableCell className="text-center font-clash-display">
+                ${movement.amount.toFixed(2)}
+              </TableCell>
+              <TableCell className="text-center font-clash-display">
+                ${movement.commission.toFixed(2)}
+              </TableCell>
+              <TableCell className="text-center font-clash-display">
+                ${movement.finalAmount.toFixed(2)}
+              </TableCell>
             </TableRow>
           ))
         )}

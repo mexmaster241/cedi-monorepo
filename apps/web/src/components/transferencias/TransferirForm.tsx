@@ -1,6 +1,5 @@
 "use client"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { generateClient } from 'aws-amplify/api'
 import { getCurrentUser } from 'aws-amplify/auth'
 import { type Schema } from 'config/amplify/data/resource'
@@ -32,11 +31,16 @@ interface Contact {
   bank: string
 }
 
+const COMMISSION_AMOUNT = 5.80;
+const COMMISSION_CLABE = '646180527800000009';
+
 export function TransferirForm() {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTab, setSelectedTab] = useState('clabe')
   const [loading, setLoading] = useState(false)
+  const [userBalance, setUserBalance] = useState(0);
+  const client = generateClient<Schema>();
 
   const filteredContacts = contacts.filter(contact => {
     const searchLower = searchQuery.toLowerCase()
@@ -46,76 +50,167 @@ export function TransferirForm() {
     )
   })
 
+  useEffect(() => {
+    async function fetchBalance() {
+      try {
+        const { username } = await getCurrentUser();
+        const userResult = await client.models.User.get({ 
+          id: username,
+        }, {
+          authMode: 'userPool',
+          selectionSet: ['id', 'balance']
+        });
+        
+        setUserBalance(userResult.data?.balance ?? 0);
+      } catch (err) {
+        console.error("Error fetching balance:", err);
+      }
+    }
+    fetchBalance();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    const form = e.currentTarget;
+    setLoading(true);
 
     try {
-      const formData = new FormData(e.currentTarget)
-      const amount = parseFloat(formData.get('amount') as string)
-      
-      // Log form data
-      console.log('Form data:', {
-        amount,
-        beneficiaryName: formData.get('beneficiaryName'),
-        institution: formData.get('institution'),
-        clabe: formData.get('clabe'),
-        concept: formData.get('concept')
-      });
+      const formData = new FormData(form);
+      const amount = parseFloat(formData.get('amount') as string);
+      const destinationClabe = formData.get('clabe') as string;
 
-      const client = generateClient<Schema>()
-      const currentUser = await getCurrentUser()
-      
-      console.log('Current user:', currentUser);
+      console.log('Starting transfer to:', destinationClabe, 'amount:', amount);
 
+      const totalAmount = amount + COMMISSION_AMOUNT;
+
+      if (totalAmount > userBalance) {
+        toast.error("Saldo insuficiente para realizar la transferencia");
+        return;
+      }
+
+      const currentUser = await getCurrentUser();
       if (!currentUser?.username) {
         throw new Error('No user authenticated');
       }
 
-      const movementData = {
+      // Create outbound movement for sender
+      const senderMovement = await client.models.Movement.create({
         userId: currentUser.username,
         category: 'WIRE',
         direction: 'OUTBOUND',
-        status: 'PENDING',
+        status: 'COMPLETED', // Mark as completed for internal transfers
         amount: amount,
-        commission: 0,
-        finalAmount: amount,
+        commission: COMMISSION_AMOUNT,
+        finalAmount: totalAmount,
         trackingId: `TRX-${Date.now()}`,
         counterpartyName: formData.get('beneficiaryName') as string,
-        counterpartyBank: formData.get('institution') as string,
-        counterpartyClabe: formData.get('clabe') as string,
+        counterpartyBank: 'CEDI',
+        counterpartyClabe: destinationClabe,
         concept: formData.get('concept') as string,
         internalReference: formData.get('reference') as string,
+        metadata: JSON.stringify({
+          commissionClabe: COMMISSION_CLABE,
+          originalAmount: amount
+        }),
         createdAt: new Date().toISOString(),
-      };
+      }, { authMode: 'userPool' });
 
-      console.log('Creating movement with data:', movementData);
+      // Update sender's balance (subtract total amount)
+      const newSenderBalance = userBalance - totalAmount;
+      await client.models.User.update({
+        id: currentUser.username,
+        balance: newSenderBalance
+      }, { 
+        authMode: 'userPool',
+        selectionSet: ['id', 'balance']
+      });
 
-      const response = await client.models.Movement.create(
-        movementData,
-        { authMode: 'userPool' }
-      );
+      // Then find and update recipient's balance
+      console.log('Searching for CLABE:', destinationClabe);
+      const recipientUsers = await client.models.User.list({
+        filter: {
+          id: {
+            eq: destinationClabe
+          }
+        },
+        selectionSet: ['id', 'balance'],
+        authMode: 'apiKey'
+      });
 
-      console.log('Raw API Response:', response);
+      console.log('Recipient users:', recipientUsers);
 
-      if (response.errors) {
-        // Log the specific API errors
-        console.error('API Errors:', response.errors);
-        throw new Error(response.errors[0]?.message || 'Failed to create movement');
+      if (recipientUsers.data && recipientUsers.data.length > 0) {
+        const recipientUser = recipientUsers.data[0];
+        const newRecipientBalance = (recipientUser.balance || 0) + amount;
+        await client.models.User.update({
+          id: destinationClabe,
+          balance: newRecipientBalance
+        }, {
+          authMode: 'apiKey',
+          selectionSet: ['id', 'balance']
+        });
       }
 
-      if (response.data) {
-        toast.success("Transferencia iniciada correctamente");
-        e.currentTarget.reset();
+      // Update commission account balance
+      const commissionUser = await client.models.User.get({
+        id: COMMISSION_CLABE
+      }, { authMode: 'userPool' });
+
+      if (commissionUser.data) {
+        const newCommissionBalance = (commissionUser.data.balance || 0) + COMMISSION_AMOUNT;
+        await client.models.User.update({
+          id: COMMISSION_CLABE,
+          balance: newCommissionBalance
+        }, { authMode: 'userPool' });
+
+        // Create inbound movement for commission
+        await client.models.Movement.create({
+          userId: COMMISSION_CLABE,
+          category: 'INTERNAL',
+          direction: 'INBOUND',
+          status: 'COMPLETED',
+          amount: COMMISSION_AMOUNT,
+          commission: 0,
+          finalAmount: COMMISSION_AMOUNT,
+          trackingId: `COM-${Date.now()}`,
+          counterpartyName: `${currentUser.username}`,
+          counterpartyBank: 'CEDI',
+          counterpartyClabe: currentUser.username,
+          concept: 'Comisión por transferencia',
+          createdAt: new Date().toISOString(),
+        }, { authMode: 'userPool' });
+      }
+
+      toast.success("Transferencia completada correctamente", {
+        description: `Monto: $${amount.toFixed(2)}\nComisión: $${COMMISSION_AMOUNT.toFixed(2)}\nTotal: $${totalAmount.toFixed(2)}`,
+        duration: 5000,
+      });
+      
+      form.reset();
+      setUserBalance(newSenderBalance);
+      
+      const totalAmountInput = document.getElementById('totalAmount') as HTMLInputElement;
+      if (totalAmountInput) {
+        totalAmountInput.value = '0.00';
       }
 
     } catch (error) {
-      console.error('Creation error:', error);
-      toast.error(error instanceof Error ? error.message : "Error al crear la transferencia");
+      console.error('Transfer error:', error);
+      toast.error("Error al realizar la transferencia");
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const amount = parseFloat(e.target.value || '0');
+    const totalAmount = amount + COMMISSION_AMOUNT;
+    
+    const totalAmountInput = document.getElementById('totalAmount') as HTMLInputElement;
+    if (totalAmountInput) {
+      totalAmountInput.value = totalAmount.toFixed(2);
+    }
+  };
 
   return (
     <div className="grid grid-cols-12 gap-6">
@@ -244,6 +339,7 @@ export function TransferirForm() {
                 placeholder="$0.00" 
                 min="0"
                 step="0.01"
+                onChange={handleAmountChange}
               />
             </div>
 

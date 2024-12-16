@@ -107,7 +107,16 @@ export default function MovimientosFilter() {
     };
   }, []);
 
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleFilter();
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [search]); // Trigger when search changes
+
   const [dateTimeRange, setDateTimeRange] = useState<FilterState>()
   const [tipoMovimiento, setTipoMovimiento] = useState("todo")
   const [estatusMovimiento, setEstatusMovimiento] = useState("todo")
@@ -117,67 +126,91 @@ export default function MovimientosFilter() {
     try {
       setLoading(true);
       const { username } = await getCurrentUser();
+      const client = generateClient<Schema>();
       
       let filter: any = {
         userId: { eq: username }
       };
       
-      if (search) {
+      // Add search filter if there's a search term
+      if (search.trim()) {
         filter.or = [
-          { externalReference: { contains: search } },
+          { counterpartyName: { contains: search.toLowerCase() } },
+          { concept: { contains: search.toLowerCase() } },
+          { trackingId: { contains: search } },
           { internalReference: { contains: search } },
-          { counterpartyName: { contains: search } }
+          { externalReference: { contains: search } }
         ];
       }
       
+      // Add movement type filter
       if (tipoMovimiento !== 'todo') {
-        // Map UI categories to schema categories
-        const categoryMap: Record<string, { category: string; direction: string }> = {
-          'deposito': { category: 'WIRE', direction: 'INBOUND' },
-          'retiro': { category: 'WIRE', direction: 'OUTBOUND' },
-          'mensualidad': { category: 'INTERNAL', direction: 'OUTBOUND' }
+        const typeFilters = {
+          'deposito': { category: { eq: 'WIRE' }, direction: { eq: 'INBOUND' } },
+          'retiro': { category: { eq: 'WIRE' }, direction: { eq: 'OUTBOUND' } },
+          'mensualidad': { category: { eq: 'INTERNAL' } }
         };
         
-        if (categoryMap[tipoMovimiento]) {
-          filter.and = [
-            { category: { eq: categoryMap[tipoMovimiento].category } },
-            { direction: { eq: categoryMap[tipoMovimiento].direction } }
-          ];
+        if (typeFilters[tipoMovimiento as keyof typeof typeFilters]) {
+          filter.and = filter.and || [];
+          filter.and.push(typeFilters[tipoMovimiento as keyof typeof typeFilters]);
         }
       }
       
+      // Add status filter
       if (estatusMovimiento !== 'todo') {
-        // Map UI status to schema status
-        const statusMap: Record<string, string> = {
+        const statusMap = {
           'liquidado': 'COMPLETED',
           'devolucion': 'REVERSED',
           'cancelacion': 'FAILED',
           'en-espera': 'PENDING'
         };
         
-        filter.status = { eq: statusMap[estatusMovimiento] };
+        if (statusMap[estatusMovimiento as keyof typeof statusMap]) {
+          filter.status = { eq: statusMap[estatusMovimiento as keyof typeof statusMap] };
+        }
       }
       
-      if (dateTimeRange?.dates) {
+      // Add date range filter
+      if (dateTimeRange?.dates?.from && dateTimeRange?.dates?.to) {
+        const fromDate = new Date(dateTimeRange.dates.from);
+        const toDate = new Date(dateTimeRange.dates.to);
+        
+        // Format dates in ISO format
+        const fromISO = fromDate.toISOString();
+        const toISO = toDate.toISOString();
+        
         filter.createdAt = {
-          between: [
-            `${dateTimeRange.dates.from}T${dateTimeRange.times.from}:00`,
-            `${dateTimeRange.dates.to}T${dateTimeRange.times.to}:59`
-          ]
+          between: [fromISO, toISO]
         };
+
+        console.log('Date range filter:', {
+          from: fromISO,
+          to: toISO
+        });
       }
 
-      const client = generateClient<Schema>();
-      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('Applied filter:', filter); // Debug log
 
-      const { data } = await client.models.Movement.list({
+      const response = await client.models.Movement.list({
         filter,
         authMode: 'userPool'
       });
 
-      setMovements(data as Movement[]);
+      console.log('Filter response:', response); // Debug log
+
+      if (response?.data) {
+        const sortedMovements = [...response.data].sort((a, b) => {
+          return new Date(b?.createdAt ?? 0).getTime() - 
+                 new Date(a?.createdAt ?? 0).getTime();
+        });
+        setMovements(sortedMovements as Movement[]);
+      } else {
+        setMovements([]);
+      }
     } catch (error) {
       console.error('Error filtering movements:', error);
+      setMovements([]);
     } finally {
       setLoading(false);
     }
@@ -196,10 +229,10 @@ export default function MovimientosFilter() {
       <div className="flex flex-col gap-4">
         {/* Search Input */}
         <Input
-          className="font-clash-display"
-          placeholder="Buscar transacción..."
+          placeholder="Buscar por beneficiario, concepto o referencia..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          className="w-full font-clash-display"
         />
 
         {/* Date Time Range */}
