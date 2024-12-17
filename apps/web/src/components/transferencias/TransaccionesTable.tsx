@@ -9,6 +9,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "@/components/ui/button"
+import { IconEye } from "@tabler/icons-react"
 
 interface Movement {
   id: string;
@@ -32,10 +34,11 @@ interface Movement {
 interface TransaccionesTableProps {
   movements: Movement[];
   loading: boolean;
-  error?: string | null;
+  error: string | null;
+  onViewDetails: (movement: Movement) => void;
 }
 
-export function TransaccionesTable({ movements, loading, error }: TransaccionesTableProps) {
+export function TransaccionesTable({ movements, loading, error, onViewDetails }: TransaccionesTableProps) {
   if (loading) {
     return <Skeleton className="w-full h-[400px]" />;
   }
@@ -83,6 +86,7 @@ export function TransaccionesTable({ movements, loading, error }: TransaccionesT
           <TableHead className="text-center font-clash-display">Monto</TableHead>
           <TableHead className="text-center font-clash-display">Comisión</TableHead>
           <TableHead className="text-center font-clash-display">Monto Final</TableHead>
+          <TableHead className="text-right">Acciones</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -121,6 +125,15 @@ export function TransaccionesTable({ movements, loading, error }: TransaccionesT
               </TableCell>
               <TableCell className="text-center font-clash-display">
                 ${movement.finalAmount.toFixed(2)}
+              </TableCell>
+              <TableCell className="text-right">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onViewDetails(movement)}
+                >
+                  <IconEye className="h-4 w-4" />
+                </Button>
               </TableCell>
             </TableRow>
           ))

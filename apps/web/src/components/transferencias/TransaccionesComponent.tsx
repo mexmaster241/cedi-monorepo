@@ -18,6 +18,8 @@ import { type Schema } from 'config/amplify/data/resource'
 import { getCurrentUser } from 'aws-amplify/auth'
 import { amplifyConfig } from 'config';
 import { useRef } from 'react'
+import { IconEye } from "@tabler/icons-react"
+import { TransactionCardDetailModal } from "./transactions-card-detail-modal"
 
 Amplify.configure(amplifyConfig)
 
@@ -52,6 +54,7 @@ export default function MovimientosFilter() {
   const [movements, setMovements] = useState<Movement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedMovement, setSelectedMovement] = useState<Movement | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -136,6 +139,7 @@ export default function MovimientosFilter() {
         filter.and = [{
           or: [
             { counterpartyName: { contains: search.toLowerCase() } },
+            { counterpartyClabe: { contains: search } },
             { concept: { contains: search.toLowerCase() } },
             { trackingId: { contains: search } },
             { internalReference: { contains: search } },
@@ -205,7 +209,7 @@ export default function MovimientosFilter() {
           filter: {
             and: [
               { direction: { eq: 'INBOUND' } },
-              { userId: { eq: username } }
+              { counterpartyClabe: { eq: username } }
             ]
           },
           authMode: 'apiKey'
@@ -300,6 +304,13 @@ export default function MovimientosFilter() {
         movements={movements} 
         loading={loading}
         error={error}
+        onViewDetails={(movement) => setSelectedMovement(movement)}
+      />
+
+      <TransactionCardDetailModal
+        isOpen={!!selectedMovement}
+        onClose={() => setSelectedMovement(null)}
+        movement={selectedMovement}
       />
     </div>
   )
