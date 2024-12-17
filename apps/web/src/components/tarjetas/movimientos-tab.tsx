@@ -81,7 +81,7 @@ export function MovimientosTab() {
     tarjetahabiente: "Juan Pérez",
     tarjeta: "**** 1234",
     tipo: "Compra",
-    tienda: "Tienda ABC",
+    tienda: "Tienda AB",
     referencia: "REF123",
     autorizacion: "AUTH456",
     monto: "$1,000.00",
