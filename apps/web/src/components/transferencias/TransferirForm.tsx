@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { generateClient } from 'aws-amplify/api'
 import { getCurrentUser } from 'aws-amplify/auth'
 import { type Schema } from 'config/amplify/data/resource'
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -25,10 +25,8 @@ import {
 
 interface Contact {
   id: string
-  type: 'clabe' | 'tarjeta' | 'celular'
   value: string
   name: string
-  bank: string
 }
 
 const COMMISSION_AMOUNT = 5.80;
@@ -41,7 +39,7 @@ export function TransferirForm() {
   const [loading, setLoading] = useState(false)
   const [userBalance, setUserBalance] = useState(0);
   const client = generateClient<Schema>();
-
+  const { toast } = useToast();
   const filteredContacts = contacts.filter(contact => {
     const searchLower = searchQuery.toLowerCase()
     return (
@@ -69,6 +67,27 @@ export function TransferirForm() {
     fetchBalance();
   }, []);
 
+  useEffect(() => {
+    async function fetchContacts() {
+      try {
+        const { username } = await getCurrentUser();
+        const result = await client.models.Contact.list({
+          filter: { userId: { eq: username }},
+          authMode: 'userPool'
+        });
+        
+        setContacts(result.data?.map(contact => ({
+          id: contact.id,
+          value: contact.clabe,
+          name: contact.name
+        })) || []);
+      } catch (err) {
+        console.error("Error fetching contacts:", err);
+      }
+    }
+    fetchContacts();
+  }, []);
+
   const handleTransfer = async (
     senderUsername: string,
     recipientClabe: string,
@@ -90,51 +109,62 @@ export function TransferirForm() {
         throw new Error('Insufficient funds');
       }
 
-      // 2. Validate recipient exists - Using clabe field instead of id
-      const recipients = await client.models.User.list({
-        filter: { 
-          clabe: { 
-            eq: recipientClabe 
-          }
-        },
-        authMode: 'apiKey',
-        selectionSet: ['id', 'clabe', 'balance']
-      });
+      // 2. Find both recipient and commission account
+      const [recipients, commissionAccount] = await Promise.all([
+        client.models.User.list({
+          filter: { clabe: { eq: recipientClabe }},
+          authMode: 'apiKey',
+          selectionSet: ['id', 'clabe', 'balance']
+        }),
+        client.models.User.list({
+          filter: { clabe: { eq: COMMISSION_CLABE }},
+          authMode: 'apiKey',
+          selectionSet: ['id', 'clabe', 'balance']
+        })
+      ]);
 
-      console.log('Found recipients:', recipients); // Debug log
-
-      if (!recipients.data || recipients.data.length === 0) {
-        throw new Error('Recipient not found');
+      if (!recipients.data?.length || !commissionAccount.data?.length) {
+        throw new Error('Recipient or commission account not found');
       }
 
       const recipient = recipients.data[0];
-      // 3. Perform the transfer
-      const newSenderBalance = sender.data.balance! - (amount + commission);
-      const newRecipientBalance = (recipient.balance || 0) + amount;
+      const commissionRecipient = commissionAccount.data[0];
 
-      // Update sender balance
-      await client.models.User.update({
-        id: senderUsername,
-        balance: newSenderBalance
-      }, { 
-        authMode: 'userPool',
-        selectionSet: ['id', 'balance']
-      });
+      // 3. Update all balances
+      await Promise.all([
+        // Update sender balance (deduct amount + commission)
+        client.models.User.update({
+          id: senderUsername,
+          balance: sender.data.balance! - (amount + commission)
+        }, { 
+          authMode: 'userPool',
+          selectionSet: ['id', 'balance']
+        }),
 
-      // Update recipient balance - Use recipient's id from the query
-      await client.models.User.update({
-        id: recipient.id,
-        balance: newRecipientBalance
-      }, {
-        authMode: 'apiKey',
-        selectionSet: ['id', 'balance']
-      });
+        // Update recipient balance (add only the transfer amount)
+        client.models.User.update({
+          id: recipient.id,
+          balance: (recipient.balance || 0) + amount
+        }, {
+          authMode: 'apiKey',
+          selectionSet: ['id', 'balance']
+        }),
 
-      // Create movement records for both parties
-      const trackingId = `TRX-${Date.now()}`;
+        // Update commission account (add only the commission)
+        client.models.User.update({
+          id: commissionRecipient.id,
+          balance: (commissionRecipient.balance || 0) + commission
+        }, {
+          authMode: 'apiKey',
+          selectionSet: ['id', 'balance']
+        })
+      ]);
+
+      // 4. Create movement records
+      const trackingId = `CEDI${Date.now()}`;
       
       await Promise.all([
-        // Sender outbound movement
+        // Sender's movement record
         client.models.Movement.create({
           userId: senderUsername,
           category: 'WIRE',
@@ -145,12 +175,12 @@ export function TransferirForm() {
           finalAmount: amount + commission,
           trackingId,
           counterpartyClabe: recipientClabe,
-          counterpartyName: recipient.id, // Add recipient's name if available
+          counterpartyName: recipient.id,
           counterpartyBank: 'CEDI',
           createdAt: new Date().toISOString(),
         }, { authMode: 'userPool' }),
 
-        // Recipient inbound movement
+        // Recipient's movement record
         client.models.Movement.create({
           userId: recipient.id,
           category: 'WIRE',
@@ -160,8 +190,8 @@ export function TransferirForm() {
           commission: 0,
           finalAmount: amount,
           trackingId,
-          counterpartyClabe: senderUsername, // Remove sender.data.clabe since it doesn't exist
-          counterpartyName: senderUsername, // Add sender's name if available
+          counterpartyClabe: senderUsername,
+          counterpartyName: senderUsername,
           counterpartyBank: 'CEDI',
           createdAt: new Date().toISOString(),
         }, { authMode: 'apiKey' })
@@ -169,8 +199,8 @@ export function TransferirForm() {
 
       return {
         success: true,
-        newSenderBalance,
-        newRecipientBalance
+        newSenderBalance: sender.data.balance! - (amount + commission),
+        newRecipientBalance: (recipient.balance || 0) + amount
       };
 
     } catch (error) {
@@ -182,15 +212,41 @@ export function TransferirForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    const form = e.currentTarget;
 
     try {
-      const formData = new FormData(e.currentTarget);
+      const formData = new FormData(form);
       const amount = parseFloat(formData.get('amount') as string);
       const destinationClabe = formData.get('clabe') as string;
+      const saveAccount = formData.get('saveAccount') === 'on';
+      const beneficiaryName = formData.get('beneficiaryName') as string;
+      const institution = formData.get('institution') as string;
       
       const currentUser = await getCurrentUser();
       if (!currentUser?.username) {
         throw new Error('No user authenticated');
+      }
+
+      if (saveAccount) {
+        await client.models.Contact.create({
+          userId: currentUser.username,
+          clabe: destinationClabe,
+          name: beneficiaryName,
+          bank: institution
+        }, { 
+          authMode: 'userPool' 
+        });
+
+        const result = await client.models.Contact.list({
+          filter: { userId: { eq: currentUser.username }},
+          authMode: 'userPool'
+        });
+        setContacts(result.data?.map(contact => ({
+          id: contact.id,
+          value: contact.clabe,
+          name: contact.name,
+          bank: contact.bank
+        })) || []);
       }
 
       const result = await handleTransfer(
@@ -200,12 +256,28 @@ export function TransferirForm() {
         COMMISSION_AMOUNT
       );
 
-      setUserBalance(result.newSenderBalance);
-      toast.success("Transferencia completada correctamente");
-      e.currentTarget.reset();
+      if (result.success) {
+        setUserBalance(result.newSenderBalance);
+        toast({
+          title: "Transferencia completada correctamente",
+          description: "La transferencia se ha realizado correctamente",
+        });
+        
+        // Reset form and total amount field
+        form.reset();
+        const totalAmountInput = document.getElementById('totalAmount') as HTMLInputElement;
+        if (totalAmountInput) {
+          totalAmountInput.value = '';
+        }
+      }
 
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error al realizar la transferencia");
+      console.error('Submit error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error al realizar la transferencia",
+        description: error instanceof Error ? error.message : "Error al realizar la transferencia",
+      });
     } finally {
       setLoading(false);
     }
@@ -218,6 +290,20 @@ export function TransferirForm() {
     const totalAmountInput = document.getElementById('totalAmount') as HTMLInputElement;
     if (totalAmountInput) {
       totalAmountInput.value = totalAmount.toFixed(2);
+    }
+  };
+
+  const handleContactSelect = (contact: Contact) => {
+    // Find and update the CLABE input
+    const clabeInput = document.getElementById('clabe') as HTMLInputElement;
+    if (clabeInput) {
+      clabeInput.value = contact.value;
+    }
+
+    // Find and update the beneficiary name input
+    const nameInput = document.getElementById('beneficiaryName') as HTMLInputElement;
+    if (nameInput) {
+      nameInput.value = contact.name;
     }
   };
 
@@ -239,14 +325,15 @@ export function TransferirForm() {
             <div className="h-[400px] overflow-y-auto space-y-2">
               {filteredContacts.length > 0 ? (
                 filteredContacts.map(contact => (
-                  <Card key={contact.id} className="p-3 cursor-pointer hover:bg-accent">
+                  <Card 
+                    key={contact.id} 
+                    className="p-3 cursor-pointer hover:bg-accent"
+                    onClick={() => handleContactSelect(contact)}
+                  >
                     <div className="space-y-1">
                       <p className="font-medium font-clash-display">{contact.name}</p>
                       <p className="text-sm text-muted-foreground font-clash-display">
-                        {contact.type.toUpperCase()}: {contact.value}
-                      </p>
-                      <p className="text-sm text-muted-foreground font-clash-display">
-                        {contact.bank}
+                        {contact.value}
                       </p>
                     </div>
                   </Card>
@@ -398,17 +485,7 @@ export function TransferirForm() {
               />
             </div>
 
-            {/* Numeric Reference */}
-            <div>
-              <Label className="font-clash-display" htmlFor="reference">Referencia numérica</Label>
-              <Input 
-                className="font-clash-display"
-                id="reference" 
-                name="reference"
-                type="number" 
-                placeholder="Referencia" 
-              />
-            </div>
+          
 
             {/* Save Account Checkbox */}
             <div className="flex items-center space-x-2">

@@ -110,7 +110,6 @@ export default function DashboardPage() {
         </div>
         <div className="w-full">
           <BalanceCard 
-            balance={balance} 
             className="w-full max-w-full transform transition-all duration-200 hover:scale-105 hover:shadow-lg" 
           />
         </div>
@@ -198,11 +197,9 @@ export default function DashboardPage() {
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full lg:max-w-2xl">
           <BalanceCard 
-            balance={balance} 
             className="transform transition-all duration-200 hover:scale-105 hover:shadow-lg" 
           />
           <TransferenciasLimite 
-            transferenciasRecibidas={1500000} 
             className="transform transition-all duration-200 hover:scale-105 hover:shadow-lg"
           />
           <MPOSLimit 

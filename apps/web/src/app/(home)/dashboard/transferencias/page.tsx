@@ -5,8 +5,9 @@ import { generateClient } from 'aws-amplify/api'
 
 import { getCurrentUser } from 'aws-amplify/auth'
 import { Copy } from "lucide-react"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 import { Card } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Select,
@@ -24,8 +25,9 @@ import TransaccionesComponent from "@/components/transferencias/TransaccionesCom
 export default function TransferenciasPage() {
   const [clabe, setClabe] = useState("")
   const [balance, setBalance] = useState<number>(0)
+  const [loading, setLoading] = useState(true)
   const client = generateClient<Schema>()
-  
+  const { toast } = useToast()
   useEffect(() => {
     async function fetchUserData() {
       try {
@@ -42,6 +44,8 @@ export default function TransferenciasPage() {
       } catch (err) {
         console.error("Error fetching user data:", err);
         setClabe("Error loading CLABE");
+      } finally {
+        setLoading(false);
       }
     }
     fetchUserData();
@@ -51,10 +55,90 @@ export default function TransferenciasPage() {
     
     try {
       await navigator.clipboard.writeText(text)
-      toast.success("CLABE copiada al portapapeles")
+      toast({
+        title: "CLABE copiada al portapapeles",
+        description: "La CLABE ha sido copiada al portapapeles",
+        variant: "default",
+      })
     } catch (err) {
-      toast.error("Error al copiar CLABE")
+      toast({
+        title: "Error al copiar CLABE",
+        description: "Hubo un error al copiar la CLABE",
+        variant: "destructive",
+      })
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* CLABE Card Skeleton */}
+          <Card className="p-4">
+            <div className="flex flex-col space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-6 w-40" />
+                <Skeleton className="h-4 w-4" />
+              </div>
+            </div>
+          </Card>
+
+          {/* Balance Card Skeleton */}
+          <Card className="p-4">
+            <div className="flex flex-col space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+          </Card>
+
+          {/* Amount on Hold Card Skeleton */}
+          <Card className="p-4">
+            <div className="flex flex-col space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+          </Card>
+        </div>
+
+        <Tabs defaultValue="movimientos" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <TabsList>
+              <TabsTrigger className="font-clash-display" value="movimientos">Movimientos</TabsTrigger>
+              <TabsTrigger className="font-clash-display" value="transferir">Transferir</TabsTrigger>
+            </TabsList>
+
+            <Select>
+              <SelectTrigger className="w-[180px] font-clash-display">
+                <SelectValue placeholder="Seleccionar periodo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem className="font-clash-display" value="2024-03">Marzo 2024</SelectItem>
+                <SelectItem className="font-clash-display" value="2024-02">Febrero 2024</SelectItem>
+                <SelectItem className="font-clash-display" value="2024-01">Enero 2024</SelectItem>
+                <SelectItem className="font-clash-display" value="2023-12">Diciembre 2023</SelectItem>
+                <SelectItem className="font-clash-display" value="2023-11">Noviembre 2023</SelectItem>
+                <SelectItem className="font-clash-display" value="2023-10">Octubre 2023</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <TabsContent value="movimientos">
+            <Card className="p-4">
+              <h2 className="text-lg font-clash-display mb-4">Movimientos Recientes</h2>
+              <TransaccionesComponent />
+              {/* Add transactions list here */}
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="transferir">
+            <Card className="p-4">
+              <Transferir />
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
   }
 
   return (

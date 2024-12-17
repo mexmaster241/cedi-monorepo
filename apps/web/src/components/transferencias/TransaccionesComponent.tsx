@@ -128,26 +128,27 @@ export default function MovimientosFilter() {
       const { username } = await getCurrentUser();
       const client = generateClient<Schema>();
       
-      let filter: any = {
-        userId: { eq: username }
-      };
+      // Base filter only checks userId since counterpartyClabe contains full ID
+      let filter: any = { userId: { eq: username } };
       
       // Add search filter if there's a search term
       if (search.trim()) {
-        filter.or = [
-          { counterpartyName: { contains: search.toLowerCase() } },
-          { concept: { contains: search.toLowerCase() } },
-          { trackingId: { contains: search } },
-          { internalReference: { contains: search } },
-          { externalReference: { contains: search } }
-        ];
+        filter.and = [{
+          or: [
+            { counterpartyName: { contains: search.toLowerCase() } },
+            { concept: { contains: search.toLowerCase() } },
+            { trackingId: { contains: search } },
+            { internalReference: { contains: search } },
+            { externalReference: { contains: search } }
+          ]
+        }];
       }
       
       // Add movement type filter
       if (tipoMovimiento !== 'todo') {
         const typeFilters = {
-          'deposito': { category: { eq: 'WIRE' }, direction: { eq: 'INBOUND' } },
-          'retiro': { category: { eq: 'WIRE' }, direction: { eq: 'OUTBOUND' } },
+          'deposito': { direction: { eq: 'INBOUND' } },
+          'retiro': { direction: { eq: 'OUTBOUND' } },
           'mensualidad': { category: { eq: 'INTERNAL' } }
         };
         
@@ -192,22 +193,38 @@ export default function MovimientosFilter() {
 
       console.log('Applied filter:', filter); // Debug log
 
-      const response = await client.models.Movement.list({
-        filter,
-        authMode: 'userPool'
+      // We need to make two queries and combine the results
+      const [outboundResponse, inboundResponse] = await Promise.all([
+        // First query for movements where user is sender
+        client.models.Movement.list({
+          filter,
+          authMode: 'userPool'
+        }),
+        // Second query for movements where user is recipient
+        client.models.Movement.list({
+          filter: {
+            and: [
+              { direction: { eq: 'INBOUND' } },
+              { userId: { eq: username } }
+            ]
+          },
+          authMode: 'apiKey'
+        })
+      ]);
+
+      console.log('Outbound response:', outboundResponse); // Debug log
+      console.log('Inbound response:', inboundResponse);   // Debug log
+
+      // Combine and sort all movements
+      const allMovements = [
+        ...(outboundResponse.data || []),
+        ...(inboundResponse.data || [])
+      ].sort((a, b) => {
+        return new Date(b?.createdAt ?? 0).getTime() - 
+               new Date(a?.createdAt ?? 0).getTime();
       });
 
-      console.log('Filter response:', response); // Debug log
-
-      if (response?.data) {
-        const sortedMovements = [...response.data].sort((a, b) => {
-          return new Date(b?.createdAt ?? 0).getTime() - 
-                 new Date(a?.createdAt ?? 0).getTime();
-        });
-        setMovements(sortedMovements as Movement[]);
-      } else {
-        setMovements([]);
-      }
+      setMovements(allMovements as Movement[]);
     } catch (error) {
       console.error('Error filtering movements:', error);
       setMovements([]);
