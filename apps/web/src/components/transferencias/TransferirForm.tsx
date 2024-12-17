@@ -69,134 +69,143 @@ export function TransferirForm() {
     fetchBalance();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    setLoading(true);
-
+  const handleTransfer = async (
+    senderUsername: string,
+    recipientClabe: string,
+    amount: number,
+    commission: number
+  ) => {
+    const client = generateClient<Schema>();
+    
     try {
-      const formData = new FormData(form);
-      const amount = parseFloat(formData.get('amount') as string);
-      const destinationClabe = formData.get('clabe') as string;
+      // 1. Validate sender has sufficient funds
+      const sender = await client.models.User.get({
+        id: senderUsername
+      }, { 
+        authMode: 'userPool',
+        selectionSet: ['id', 'balance']
+      });
 
-      console.log('Starting transfer to:', destinationClabe, 'amount:', amount);
-
-      const totalAmount = amount + COMMISSION_AMOUNT;
-
-      if (totalAmount > userBalance) {
-        toast.error("Saldo insuficiente para realizar la transferencia");
-        return;
+      if (!sender.data || sender.data.balance! < (amount + commission)) {
+        throw new Error('Insufficient funds');
       }
 
-      const currentUser = await getCurrentUser();
-      if (!currentUser?.username) {
-        throw new Error('No user authenticated');
+      // 2. Validate recipient exists - Using clabe field instead of id
+      const recipients = await client.models.User.list({
+        filter: { 
+          clabe: { 
+            eq: recipientClabe 
+          }
+        },
+        authMode: 'apiKey',
+        selectionSet: ['id', 'clabe', 'balance']
+      });
+
+      console.log('Found recipients:', recipients); // Debug log
+
+      if (!recipients.data || recipients.data.length === 0) {
+        throw new Error('Recipient not found');
       }
 
-      // Create outbound movement for sender
-      const senderMovement = await client.models.Movement.create({
-        userId: currentUser.username,
-        category: 'WIRE',
-        direction: 'OUTBOUND',
-        status: 'COMPLETED', // Mark as completed for internal transfers
-        amount: amount,
-        commission: COMMISSION_AMOUNT,
-        finalAmount: totalAmount,
-        trackingId: `TRX-${Date.now()}`,
-        counterpartyName: formData.get('beneficiaryName') as string,
-        counterpartyBank: 'CEDI',
-        counterpartyClabe: destinationClabe,
-        concept: formData.get('concept') as string,
-        internalReference: formData.get('reference') as string,
-        metadata: JSON.stringify({
-          commissionClabe: COMMISSION_CLABE,
-          originalAmount: amount
-        }),
-        createdAt: new Date().toISOString(),
-      }, { authMode: 'userPool' });
+      const recipient = recipients.data[0];
+      // 3. Perform the transfer
+      const newSenderBalance = sender.data.balance! - (amount + commission);
+      const newRecipientBalance = (recipient.balance || 0) + amount;
 
-      // Update sender's balance (subtract total amount)
-      const newSenderBalance = userBalance - totalAmount;
+      // Update sender balance
       await client.models.User.update({
-        id: currentUser.username,
+        id: senderUsername,
         balance: newSenderBalance
       }, { 
         authMode: 'userPool',
         selectionSet: ['id', 'balance']
       });
 
-      // Then find and update recipient's balance
-      console.log('Searching for CLABE:', destinationClabe);
-      const recipientUsers = await client.models.User.list({
-        filter: {
-          id: {
-            eq: destinationClabe
-          }
-        },
-        selectionSet: ['id', 'balance'],
-        authMode: 'apiKey'
+      // Update recipient balance - Use recipient's id from the query
+      await client.models.User.update({
+        id: recipient.id,
+        balance: newRecipientBalance
+      }, {
+        authMode: 'apiKey',
+        selectionSet: ['id', 'balance']
       });
 
-      console.log('Recipient users:', recipientUsers);
+      // Create movement records for both parties
+      const trackingId = `TRX-${Date.now()}`;
+      
+      await Promise.all([
+        // Sender outbound movement
+        client.models.Movement.create({
+          userId: senderUsername,
+          category: 'WIRE',
+          direction: 'OUTBOUND',
+          status: 'COMPLETED',
+          amount,
+          commission,
+          finalAmount: amount + commission,
+          trackingId,
+          counterpartyClabe: recipientClabe,
+          counterpartyName: recipient.id, // Add recipient's name if available
+          counterpartyBank: 'CEDI',
+          createdAt: new Date().toISOString(),
+        }, { authMode: 'userPool' }),
 
-      if (recipientUsers.data && recipientUsers.data.length > 0) {
-        const recipientUser = recipientUsers.data[0];
-        const newRecipientBalance = (recipientUser.balance || 0) + amount;
-        await client.models.User.update({
-          id: destinationClabe,
-          balance: newRecipientBalance
-        }, {
-          authMode: 'apiKey',
-          selectionSet: ['id', 'balance']
-        });
-      }
-
-      // Update commission account balance
-      const commissionUser = await client.models.User.get({
-        id: COMMISSION_CLABE
-      }, { authMode: 'userPool' });
-
-      if (commissionUser.data) {
-        const newCommissionBalance = (commissionUser.data.balance || 0) + COMMISSION_AMOUNT;
-        await client.models.User.update({
-          id: COMMISSION_CLABE,
-          balance: newCommissionBalance
-        }, { authMode: 'userPool' });
-
-        // Create inbound movement for commission
-        await client.models.Movement.create({
-          userId: COMMISSION_CLABE,
-          category: 'INTERNAL',
+        // Recipient inbound movement
+        client.models.Movement.create({
+          userId: recipient.id,
+          category: 'WIRE',
           direction: 'INBOUND',
           status: 'COMPLETED',
-          amount: COMMISSION_AMOUNT,
+          amount,
           commission: 0,
-          finalAmount: COMMISSION_AMOUNT,
-          trackingId: `COM-${Date.now()}`,
-          counterpartyName: `${currentUser.username}`,
+          finalAmount: amount,
+          trackingId,
+          counterpartyClabe: senderUsername, // Remove sender.data.clabe since it doesn't exist
+          counterpartyName: senderUsername, // Add sender's name if available
           counterpartyBank: 'CEDI',
-          counterpartyClabe: currentUser.username,
-          concept: 'Comisión por transferencia',
           createdAt: new Date().toISOString(),
-        }, { authMode: 'userPool' });
-      }
+        }, { authMode: 'apiKey' })
+      ]);
 
-      toast.success("Transferencia completada correctamente", {
-        description: `Monto: $${amount.toFixed(2)}\nComisión: $${COMMISSION_AMOUNT.toFixed(2)}\nTotal: $${totalAmount.toFixed(2)}`,
-        duration: 5000,
-      });
-      
-      form.reset();
-      setUserBalance(newSenderBalance);
-      
-      const totalAmountInput = document.getElementById('totalAmount') as HTMLInputElement;
-      if (totalAmountInput) {
-        totalAmountInput.value = '0.00';
-      }
+      return {
+        success: true,
+        newSenderBalance,
+        newRecipientBalance
+      };
 
     } catch (error) {
       console.error('Transfer error:', error);
-      toast.error("Error al realizar la transferencia");
+      throw error;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      const amount = parseFloat(formData.get('amount') as string);
+      const destinationClabe = formData.get('clabe') as string;
+      
+      const currentUser = await getCurrentUser();
+      if (!currentUser?.username) {
+        throw new Error('No user authenticated');
+      }
+
+      const result = await handleTransfer(
+        currentUser.username,
+        destinationClabe,
+        amount,
+        COMMISSION_AMOUNT
+      );
+
+      setUserBalance(result.newSenderBalance);
+      toast.success("Transferencia completada correctamente");
+      e.currentTarget.reset();
+
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error al realizar la transferencia");
     } finally {
       setLoading(false);
     }
