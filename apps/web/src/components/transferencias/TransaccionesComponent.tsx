@@ -47,6 +47,7 @@ interface Movement {
   counterpartyClabe?: string;
   counterpartyEmail?: string;
   concept?: string;
+  concept2?: string;
   createdAt?: string;
 }
 

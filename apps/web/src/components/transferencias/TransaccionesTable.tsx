@@ -28,6 +28,7 @@ interface Movement {
   counterpartyClabe?: string;
   counterpartyEmail?: string;
   concept?: string;
+  concept2?: string;
   createdAt?: string;
 }
 
@@ -81,6 +82,8 @@ export function TransaccionesTable({ movements, loading, error, onViewDetails }:
           <TableHead className="text-center font-clash-display">Tipo</TableHead>
           <TableHead className="text-center font-clash-display">Estatus</TableHead>
           <TableHead className="text-center font-clash-display">Referencia</TableHead>
+          <TableHead className="text-center font-clash-display">Concepto</TableHead>
+          {/* <TableHead className="text-center font-clash-display">Concepto 2</TableHead> */}
           <TableHead className="text-center font-clash-display">Beneficiario/Remitente</TableHead>
           <TableHead className="text-center font-clash-display">Banco</TableHead>
           <TableHead className="text-center font-clash-display">Monto</TableHead>
@@ -111,6 +114,12 @@ export function TransaccionesTable({ movements, loading, error, onViewDetails }:
               <TableCell className="text-center font-clash-display">
                 {getReference(movement)}
               </TableCell>
+              <TableCell className="text-center font-clash-display">
+                {movement.concept}
+              </TableCell>
+              {/* <TableCell className="text-center font-clash-display">
+                {movement.concept2}
+              </TableCell> */}
               <TableCell className="text-center font-clash-display">
                 {movement.counterpartyName}
               </TableCell>
