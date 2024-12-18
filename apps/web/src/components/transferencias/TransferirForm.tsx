@@ -206,6 +206,7 @@ export function TransferirForm() {
           counterpartyName: senderFullName,
           counterpartyBank: 'CEDI',
           concept,
+          concept2,
           createdAt: new Date().toISOString(),
         }, { authMode: 'apiKey' })
       ]);
@@ -435,7 +436,8 @@ export function TransferirForm() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem className="font-clash-display" value="banamex">Banamex</SelectItem>
-                  <SelectItem className="font-clash-display" value="bancomer">BBVA</SelectItem>
+                  <SelectItem className="font-clash-display" value="
+                  ">BBVA</SelectItem>
                   <SelectItem className="font-clash-display" value="santander">Santander</SelectItem>
                 </SelectContent>
               </Select>
