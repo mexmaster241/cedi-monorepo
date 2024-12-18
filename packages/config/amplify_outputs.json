@@ -404,6 +404,13 @@
               "isRequired": false,
               "attributes": []
             },
+            "concept2": {
+              "name": "concept2",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
             "concept": {
               "name": "concept",
               "isArray": false,
