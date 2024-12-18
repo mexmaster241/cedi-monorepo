@@ -306,7 +306,7 @@ export default function MovimientosFilter() {
         onViewDetails={(movement) => setSelectedMovement(movement)}
       />
 
-      <TransactionCardDetailModal
+<TransactionCardDetailModal
         isOpen={!!selectedMovement}
         onClose={() => setSelectedMovement(null)}
         movement={selectedMovement}

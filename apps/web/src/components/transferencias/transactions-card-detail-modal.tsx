@@ -51,11 +51,10 @@ export function TransactionCardDetailModal({ isOpen, onClose, movement }: Transa
         
         try {
             // Generate the PDF blob
-            const blob = await pdf(<TransactionProofPDF movement={movement} />).toBlob();
+            const blob = await pdf(<TransactionProofPDF movement={{...movement, counterpartyClabe: movement.counterpartyClabe || ''}} />).toBlob();
             
             // Create a URL for the blob
             const url = URL.createObjectURL(blob);
-            
             // Create a temporary link element
             const link = document.createElement('a');
             link.href = url;
