@@ -139,7 +139,6 @@ export default function MovimientosFilter() {
         filter.and = [{
           or: [
             { counterpartyName: { contains: search.toLowerCase() } },
-            { counterpartyClabe: { contains: search } },
             { concept: { contains: search.toLowerCase() } },
             { trackingId: { contains: search } },
             { internalReference: { contains: search } },
@@ -209,7 +208,7 @@ export default function MovimientosFilter() {
           filter: {
             and: [
               { direction: { eq: 'INBOUND' } },
-              { counterpartyClabe: { eq: username } }
+              { userId: { eq: username } }
             ]
           },
           authMode: 'apiKey'

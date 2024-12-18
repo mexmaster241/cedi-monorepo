@@ -19,20 +19,48 @@ export function TransferenciasLimite({ className }: TransferenciasLimiteProps) {
     async function fetchDeposits() {
       try {
         const { username } = await getCurrentUser();
-        const deposits = await client.models.Movement.list({
-          authMode: 'userPool',
-          selectionSet: ['id', 'amount', 'finalAmount', 'direction', 'status', 'category']
-        });
+        const client = generateClient<Schema>();
 
-        console.log('All movements:', deposits.data);
-        console.log('Current user:', username);
+        // We need to fetch both types of inbound movements
+        const [userDeposits, receivedDeposits] = await Promise.all([
+          // Deposits where user is the main recipient
+          client.models.Movement.list({
+            filter: {
+              and: [
+                { userId: { eq: username } },
+                { direction: { eq: 'INBOUND' } },
+                { status: { eq: 'COMPLETED' } }
+              ]
+            },
+            authMode: 'userPool',
+            selectionSet: ['id', 'amount', 'finalAmount', 'direction', 'status', 'category']
+          }),
+          // Deposits received as counterparty
+          client.models.Movement.list({
+            filter: {
+              and: [
+                { direction: { eq: 'INBOUND' } },
+                { userId: { eq: username } }
+              ]
+            },
+            authMode: 'apiKey',
+            selectionSet: ['id', 'amount', 'finalAmount', 'direction', 'status', 'category']
+          })
+        ]);
 
-        const totalDeposits = deposits.data?.reduce((total, deposit) => {
-          console.log('Processing deposit:', deposit);
-          return total + (deposit.amount || 0);
-        }, 0) || 0;
+        const allDeposits = [
+          ...(userDeposits.data || []),
+          ...(receivedDeposits.data || [])
+        ];
 
-        console.log('Total deposits:', totalDeposits);
+        const totalDeposits = allDeposits.reduce((total, deposit) => {
+          // Only count completed transactions
+          if (deposit.status === 'COMPLETED') {
+            return total + (deposit.amount || 0);
+          }
+          return total;
+        }, 0);
+
         setTransferenciasRecibidas(totalDeposits);
       } catch (err) {
         console.error("Error fetching deposits:", err);
