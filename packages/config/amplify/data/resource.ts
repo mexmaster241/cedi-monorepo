@@ -56,9 +56,10 @@ const schema = a.schema({
       counterpartyBank: a.string().required(),
       counterpartyClabe: a.string(),
       counterpartyEmail: a.string(),
-      
+      concept2: a.string(),
       // Additional context
       concept: a.string(),
+
       metadata: a.string(), // We'll store JSON as a string since Gen 2 doesn't have direct JSON type
       
       // Timestamps

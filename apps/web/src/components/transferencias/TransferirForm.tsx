@@ -92,7 +92,9 @@ export function TransferirForm() {
     senderUsername: string,
     recipientClabe: string,
     amount: number,
-    commission: number
+    commission: number,
+    concept: string,
+    concept2: string
   ) => {
     const client = generateClient<Schema>();
     
@@ -186,6 +188,7 @@ export function TransferirForm() {
           counterpartyClabe: recipientClabe,
           counterpartyName: recipientFullName,
           counterpartyBank: 'CEDI',
+          concept,
           createdAt: new Date().toISOString(),
         }, { authMode: 'userPool' }),
 
@@ -202,6 +205,7 @@ export function TransferirForm() {
           counterpartyClabe: sender.clabe || senderUsername,
           counterpartyName: senderFullName,
           counterpartyBank: 'CEDI',
+          concept,
           createdAt: new Date().toISOString(),
         }, { authMode: 'apiKey' })
       ]);
@@ -230,6 +234,8 @@ export function TransferirForm() {
       const saveAccount = formData.get('saveAccount') === 'on';
       const beneficiaryName = formData.get('beneficiaryName') as string;
       const institution = formData.get('institution') as string;
+      const concept = formData.get('concept') as string;
+      const concept2 = formData.get('concept2') as string;
       
       const currentUser = await getCurrentUser();
       if (!currentUser?.username) {
@@ -262,7 +268,9 @@ export function TransferirForm() {
         currentUser.username,
         destinationClabe,
         amount,
-        COMMISSION_AMOUNT
+        COMMISSION_AMOUNT,
+        concept,
+        concept2
       );
 
       if (result.success) {

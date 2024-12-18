@@ -24,6 +24,7 @@ interface Movement {
     counterpartyBank: string;
     counterpartyClabe?: string;
     concept?: string;
+    concept2?: string;
     status: string;
 }
 
@@ -123,6 +124,14 @@ export function TransactionCardDetailModal({ isOpen, onClose, movement }: Transa
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground font-clash-display">Concepto:</span>
                                     <span className="font-medium font-clash-display">{movement.concept}</span>
+                                </div>
+                                
+
+                            )}
+                            {movement.concept2 && (
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground font-clash-display">Concepto 2:</span>
+                                    <span className="font-medium font-clash-display">{movement.concept2}</span>
                                 </div>
                             )}
                         </div>
