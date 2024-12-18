@@ -97,25 +97,38 @@ export function TransferirForm() {
     const client = generateClient<Schema>();
     
     try {
-      // 1. Validate sender has sufficient funds
-      const sender = await client.models.User.get({
-        id: senderUsername
-      }, { 
-        authMode: 'userPool',
-        selectionSet: ['id', 'balance']
-      });
-
-      if (!sender.data || sender.data.balance! < (amount + commission)) {
-        throw new Error('Insufficient funds');
-      }
-
-      // 2. Find both recipient and commission account
-      const [recipients, commissionAccount] = await Promise.all([
+      // 1. Get sender's full details using apiKey to ensure consistent access
+      const [senderDetails, recipients] = await Promise.all([
+        client.models.User.get({
+          id: senderUsername
+        }, { 
+          authMode: 'apiKey',
+          selectionSet: ['id', 'clabe', 'balance', 'givenName', 'familyName']
+        }),
         client.models.User.list({
           filter: { clabe: { eq: recipientClabe }},
           authMode: 'apiKey',
-          selectionSet: ['id', 'clabe', 'balance']
-        }),
+          selectionSet: ['id', 'clabe', 'balance', 'givenName', 'familyName']
+        })
+      ]);
+
+      if (!senderDetails.data || senderDetails.data.balance! < (amount + commission)) {
+        throw new Error('Insufficient funds');
+      }
+
+      if (!recipients.data?.length) {
+        throw new Error('Recipient not found');
+      }
+
+      const sender = senderDetails.data;
+      const recipient = recipients.data[0];
+
+      // Create full names
+      const senderFullName = `${sender.givenName} ${sender.familyName}`;
+      const recipientFullName = `${recipient.givenName} ${recipient.familyName}`;
+
+      // 2. Find both recipient and commission account with full details
+      const [commissionAccount] = await Promise.all([
         client.models.User.list({
           filter: { clabe: { eq: COMMISSION_CLABE }},
           authMode: 'apiKey',
@@ -123,25 +136,22 @@ export function TransferirForm() {
         })
       ]);
 
-      if (!recipients.data?.length || !commissionAccount.data?.length) {
-        throw new Error('Recipient or commission account not found');
+      if (!commissionAccount.data?.length) {
+        throw new Error('Commission account not found');
       }
 
-      const recipient = recipients.data[0];
       const commissionRecipient = commissionAccount.data[0];
 
-      // 3. Update all balances
+      // 3. Update balances (unchanged)
       await Promise.all([
-        // Update sender balance (deduct amount + commission)
         client.models.User.update({
           id: senderUsername,
-          balance: sender.data.balance! - (amount + commission)
+          balance: sender.balance! - (amount + commission)
         }, { 
           authMode: 'userPool',
           selectionSet: ['id', 'balance']
         }),
 
-        // Update recipient balance (add only the transfer amount)
         client.models.User.update({
           id: recipient.id,
           balance: (recipient.balance || 0) + amount
@@ -150,7 +160,6 @@ export function TransferirForm() {
           selectionSet: ['id', 'balance']
         }),
 
-        // Update commission account (add only the commission)
         client.models.User.update({
           id: commissionRecipient.id,
           balance: (commissionRecipient.balance || 0) + commission
@@ -160,7 +169,7 @@ export function TransferirForm() {
         })
       ]);
 
-      // 4. Create movement records
+      // 4. Create movement records with proper names
       const trackingId = `CEDI${Date.now()}`;
       
       await Promise.all([
@@ -175,7 +184,7 @@ export function TransferirForm() {
           finalAmount: amount + commission,
           trackingId,
           counterpartyClabe: recipientClabe,
-          counterpartyName: recipient.id,
+          counterpartyName: recipientFullName,
           counterpartyBank: 'CEDI',
           createdAt: new Date().toISOString(),
         }, { authMode: 'userPool' }),
@@ -190,8 +199,8 @@ export function TransferirForm() {
           commission: 0,
           finalAmount: amount,
           trackingId,
-          counterpartyClabe: senderUsername,
-          counterpartyName: senderUsername,
+          counterpartyClabe: sender.clabe || senderUsername,
+          counterpartyName: senderFullName,
           counterpartyBank: 'CEDI',
           createdAt: new Date().toISOString(),
         }, { authMode: 'apiKey' })
@@ -199,7 +208,7 @@ export function TransferirForm() {
 
       return {
         success: true,
-        newSenderBalance: sender.data.balance! - (amount + commission),
+        newSenderBalance: sender.balance! - (amount + commission),
         newRecipientBalance: (recipient.balance || 0) + amount
       };
 

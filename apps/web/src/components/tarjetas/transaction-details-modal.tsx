@@ -23,6 +23,18 @@ interface Transaction {
   cashback: string
   recargo: string
   cargoFinal: string
+  trackingId: string
+  createdAt?: string
+  direction: string
+  amount: number
+  commission: number
+  finalAmount: number
+  counterpartyName: string
+  counterpartyClabe?: string
+  counterpartyBank: string
+  concept?: string
+  status: string
+  userId: string
 }
 
 interface TransactionDetailsProps {
@@ -34,74 +46,84 @@ interface TransactionDetailsProps {
 export function TransactionDetailsModal({ isOpen, onClose, transaction }: TransactionDetailsProps) {
   if (!transaction) return null
 
+  const isOutbound = transaction.direction === 'OUTBOUND'
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-clash-display">Detalles de la Transacción</DialogTitle>
+          <DialogTitle className="font-clash-display">Detalles de la Transferencia</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           <div className="space-y-2 text-sm">
             <div className="text-center">
-              <h3 className="font-clash-display text-lg">Comprobante de Transacción</h3>
-              <p className="text-muted-foreground font-clash-display">#{transaction.id}</p>
+              <h3 className="font-clash-display text-lg">Comprobante de Transferencia</h3>
+              <p className="text-muted-foreground font-clash-display">#{transaction.trackingId}</p>
             </div>
 
-            <div className="border-t border-b py-4 space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground font-clash-display">Fecha:</span>
-                <span className="font-medium font-clash-display">{transaction.fecha}</span>
+            <div className="border-t border-b py-4 space-y-4">
+              {/* Sender Information */}
+              <div className="space-y-2">
+                <h4 className="font-clash-display font-medium">Remitente</h4>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground font-clash-display">Nombre:</span>
+                  <span className="font-medium font-clash-display">
+                    {isOutbound ? transaction.userId : transaction.counterpartyName}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground font-clash-display">CLABE:</span>
+                  <span className="font-medium font-clash-display">
+                    {isOutbound ? transaction.userId : transaction.counterpartyClabe}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground font-clash-display">Tarjetahabiente:</span>
-                <span className="font-medium font-clash-display">{transaction.tarjetahabiente}</span>
+
+              {/* Recipient Information */}
+              <div className="space-y-2">
+                <h4 className="font-clash-display font-medium">Beneficiario</h4>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground font-clash-display">Nombre:</span>
+                  <span className="font-medium font-clash-display">
+                    {isOutbound ? transaction.counterpartyName : transaction.userId}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground font-clash-display">CLABE:</span>
+                  <span className="font-medium font-clash-display">
+                    {isOutbound ? transaction.counterpartyClabe : transaction.userId}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground font-clash-display">Banco:</span>
+                  <span className="font-medium font-clash-display">{transaction.counterpartyBank}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground font-clash-display">Tarjeta:</span>
-                <span className="font-medium font-clash-display">{transaction.tarjeta}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground font-clash-display">Tipo:</span>
-                <span className="font-medium font-clash-display">{transaction.tipo}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground font-clash-display">Tienda:</span>
-                <span className="font-medium font-clash-display">{transaction.tienda}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground font-clash-display">Referencia:</span>
-                <span className="font-medium font-clash-display">{transaction.referencia}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground font-clash-display">No. Autorización:</span>
-                <span className="font-medium font-clash-display">{transaction.autorizacion}</span>
-              </div>
+
+              {transaction.concept && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground font-clash-display">Concepto:</span>
+                  <span className="font-medium font-clash-display">{transaction.concept}</span>
+                </div>
+              )}
             </div>
 
             <div className="border-b py-4 space-y-2">
               <div className="flex justify-between">
                 <span className="text-muted-foreground font-clash-display">Monto:</span>
-                <span className="font-medium font-clash-display">{transaction.monto}</span>
+                <span className="font-medium font-clash-display">${transaction.amount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground font-clash-display">Comisión:</span>
-                <span className="font-medium font-clash-display">{transaction.comision}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground font-clash-display">Cashback:</span>
-                <span className="font-medium font-clash-display">{transaction.cashback}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground font-clash-display">Recargo:</span>
-                <span className="font-medium font-clash-display">{transaction.recargo}</span>
+                <span className="font-medium font-clash-display">${transaction.commission.toFixed(2)}</span>
               </div>
             </div>
 
             <div className="pt-2">
               <div className="flex justify-between text-lg font-bold">
-                <span className="font-clash-display">Cargo Final:</span>
-                <span className="font-clash-display">{transaction.cargoFinal}</span>
+                <span className="font-clash-display">Monto Final:</span>
+                <span className="font-clash-display">${transaction.finalAmount.toFixed(2)}</span>
               </div>
             </div>
           </div>
