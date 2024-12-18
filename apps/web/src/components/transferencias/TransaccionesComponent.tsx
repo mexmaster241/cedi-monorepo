@@ -18,7 +18,7 @@ import { type Schema } from 'config/amplify/data/resource'
 import { getCurrentUser } from 'aws-amplify/auth'
 import { amplifyConfig } from 'config';
 import { useRef } from 'react'
-import { IconEye } from "@tabler/icons-react"
+import { IconEye, IconDownload } from "@tabler/icons-react"
 import { TransactionCardDetailModal } from "./transactions-card-detail-modal"
 
 Amplify.configure(amplifyConfig)
@@ -56,6 +56,8 @@ export default function MovimientosFilter() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedMovement, setSelectedMovement] = useState<Movement | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
 
   useEffect(() => {
     let isMounted = true;
@@ -126,26 +128,36 @@ export default function MovimientosFilter() {
   const [estatusMovimiento, setEstatusMovimiento] = useState("todo")
   const dateTimeRangeRef = useRef<{ reset: () => void }>(null)
 
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, tipoMovimiento, estatusMovimiento, dateTimeRange]);
+
+  // Calculate paginated movements
+  const totalPages = Math.ceil(movements.length / ITEMS_PER_PAGE);
+  const paginatedMovements = movements.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   const handleFilter = async () => {
     try {
       setLoading(true);
       const { username } = await getCurrentUser();
       const client = generateClient<Schema>();
       
-      // Base filter only checks userId since counterpartyClabe contains full ID
-      let filter: any = { userId: { eq: username } };
+      // Create base filters for both queries
+      let baseFilter: any = {};
       
       // Add search filter if there's a search term
       if (search.trim()) {
-        filter.and = [{
-          or: [
-            { counterpartyName: { contains: search.toLowerCase() } },
-            { concept: { contains: search.toLowerCase() } },
-            { trackingId: { contains: search } },
-            { internalReference: { contains: search } },
-            { externalReference: { contains: search } }
-          ]
-        }];
+        baseFilter.or = [
+          { counterpartyName: { contains: search.toLowerCase() } },
+          { concept: { contains: search.toLowerCase() } },
+          { trackingId: { contains: search } },
+          { internalReference: { contains: search } },
+          { externalReference: { contains: search } }
+        ];
       }
       
       // Add movement type filter
@@ -157,8 +169,10 @@ export default function MovimientosFilter() {
         };
         
         if (typeFilters[tipoMovimiento as keyof typeof typeFilters]) {
-          filter.and = filter.and || [];
-          filter.and.push(typeFilters[tipoMovimiento as keyof typeof typeFilters]);
+          baseFilter = {
+            ...baseFilter,
+            ...typeFilters[tipoMovimiento as keyof typeof typeFilters]
+          };
         }
       }
       
@@ -172,7 +186,7 @@ export default function MovimientosFilter() {
         };
         
         if (statusMap[estatusMovimiento as keyof typeof statusMap]) {
-          filter.status = { eq: statusMap[estatusMovimiento as keyof typeof statusMap] };
+          baseFilter.status = { eq: statusMap[estatusMovimiento as keyof typeof statusMap] };
         }
       }
       
@@ -181,43 +195,44 @@ export default function MovimientosFilter() {
         const fromDate = new Date(dateTimeRange.dates.from);
         const toDate = new Date(dateTimeRange.dates.to);
         
-        // Format dates in ISO format
-        const fromISO = fromDate.toISOString();
-        const toISO = toDate.toISOString();
+        // Set time to start and end of day respectively
+        fromDate.setHours(0, 0, 0, 0);
+        toDate.setHours(23, 59, 59, 999);
         
-        filter.createdAt = {
-          between: [fromISO, toISO]
+        baseFilter.createdAt = {
+          between: [fromDate.toISOString(), toDate.toISOString()]
         };
-
-        console.log('Date range filter:', {
-          from: fromISO,
-          to: toISO
-        });
       }
 
-      console.log('Applied filter:', filter); // Debug log
+      // Create outbound and inbound filters
+      const outboundFilter = {
+        and: [
+          { userId: { eq: username } },
+          ...Object.keys(baseFilter).length > 0 ? [baseFilter] : []
+        ]
+      };
 
-      // We need to make two queries and combine the results
+      const inboundFilter = {
+        and: [
+          { userId: { eq: username } },
+          { direction: { eq: 'INBOUND' } },
+          ...Object.keys(baseFilter).length > 0 ? [baseFilter] : []
+        ]
+      };
+
+      console.log('Outbound filter:', outboundFilter);
+      console.log('Inbound filter:', inboundFilter);
+
       const [outboundResponse, inboundResponse] = await Promise.all([
-        // First query for movements where user is sender
         client.models.Movement.list({
-          filter,
+          filter: outboundFilter,
           authMode: 'userPool'
         }),
-        // Second query for movements where user is recipient
         client.models.Movement.list({
-          filter: {
-            and: [
-              { direction: { eq: 'INBOUND' } },
-              { userId: { eq: username } }
-            ]
-          },
+          filter: inboundFilter,
           authMode: 'apiKey'
         })
       ]);
-
-      console.log('Outbound response:', outboundResponse); // Debug log
-      console.log('Inbound response:', inboundResponse);   // Debug log
 
       // Combine and sort all movements
       const allMovements = [
@@ -244,6 +259,71 @@ export default function MovimientosFilter() {
     setEstatusMovimiento("todo")
     dateTimeRangeRef.current?.reset()
   }
+
+  const downloadCSV = () => {
+    // Define CSV headers
+    const headers = [
+      'Fecha',
+      'Tipo',
+      'Estatus',
+      'Referencia',
+      'Concepto',
+      'Beneficiario/Remitente',
+      'Banco',
+      'Monto',
+      'Comisión',
+      'Monto Final'
+    ];
+
+    // Convert movements to CSV format
+    const csvData = movements.map(movement => [
+      movement.createdAt ? new Date(movement.createdAt).toLocaleString() : '-',
+      getTypeLabel(movement.category, movement.direction),
+      getStatusLabel(movement.status),
+      movement.externalReference || movement.internalReference || movement.trackingId || '-',
+      movement.concept || '-',
+      movement.counterpartyName,
+      movement.counterpartyBank,
+      movement.amount.toFixed(2),
+      movement.commission.toFixed(2),
+      movement.finalAmount.toFixed(2)
+    ]);
+
+    // Create CSV content
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n');
+
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `movimientos_${new Date().toISOString()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Helper functions for CSV
+  const getTypeLabel = (category: string, direction: string) => {
+    if (category === 'WIRE') {
+      return direction === 'INBOUND' ? 'Depósito' : 'Retiro';
+    }
+    return category === 'INTERNAL' ? 'Mensualidad' : '-';
+  };
+
+  const getStatusLabel = (status: string) => {
+    const statusMap: Record<string, string> = {
+      'PENDING': 'En espera',
+      'PROCESSING': 'Procesando',
+      'COMPLETED': 'Liquidado',
+      'FAILED': 'Cancelado',
+      'REVERSED': 'Devuelto'
+    };
+    return statusMap[status] || status;
+  };
 
   return (
     <div className="space-y-4">
@@ -298,13 +378,25 @@ export default function MovimientosFilter() {
           <Button onClick={handleClear} variant="outline" className="flex-1 font-clash-display">
             Limpiar
           </Button>
+          <Button 
+            onClick={downloadCSV} 
+            variant="outline"
+            className="font-clash-display"
+            disabled={movements.length === 0}
+          >
+            <IconDownload className="h-4 w-4 mr-2" />
+            Exportar CSV
+          </Button>
         </div>
       </div>
       <TransaccionesTable 
-        movements={movements} 
+        movements={paginatedMovements} 
         loading={loading}
         error={error}
         onViewDetails={(movement) => setSelectedMovement(movement)}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        totalPages={totalPages}
       />
 
 <TransactionCardDetailModal
