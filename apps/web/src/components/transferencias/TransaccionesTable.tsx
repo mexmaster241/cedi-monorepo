@@ -121,39 +121,39 @@ export function TransaccionesTable({
             </TableRow>
           ) : (
             movements.map((movement) => (
-              <TableRow key={movement.id}>
+              <TableRow key={movement?.id}>
                 <TableCell className="text-center font-clash-display">
-                  {movement.createdAt ? new Date(movement.createdAt).toLocaleString() : '-'}
+                  {movement?.createdAt ? new Date(movement.createdAt).toLocaleString() : '-'}
                 </TableCell>
                 <TableCell className="text-center font-clash-display">
-                  {getTypeLabel(movement.category, movement.direction)}
+                  {movement ? getTypeLabel(movement.category, movement.direction) : '-'}
                 </TableCell>
                 <TableCell className="text-center font-clash-display">
-                  {getStatusLabel(movement.status)}
+                  {movement?.status ? getStatusLabel(movement.status) : '-'}
                 </TableCell>
                 <TableCell className="text-center font-clash-display">
-                  {getReference(movement)}
+                  {movement ? getReference(movement) : '-'}
                 </TableCell>
                 <TableCell className="text-center font-clash-display">
-                  {movement.concept}
+                  {movement?.concept || '-'}
                 </TableCell>
                 {/* <TableCell className="text-center font-clash-display">
                   {movement.concept2}
                 </TableCell> */}
                 <TableCell className="text-center font-clash-display">
-                  {movement.counterpartyName}
+                  {movement?.counterpartyName || '-'}
                 </TableCell>
                 <TableCell className="text-center font-clash-display">
-                  {movement.counterpartyBank}
+                  {movement?.counterpartyBank || '-'}
                 </TableCell>
                 <TableCell className="text-center font-clash-display">
-                  ${movement.amount.toFixed(2)}
+                  ${movement?.amount?.toFixed(2) || '0.00'}
                 </TableCell>
                 <TableCell className="text-center font-clash-display">
-                  ${movement.commission.toFixed(2)}
+                  ${movement?.commission?.toFixed(2) || '0.00'}
                 </TableCell>
                 <TableCell className="text-center font-clash-display">
-                  ${movement.finalAmount.toFixed(2)}
+                  ${movement?.finalAmount?.toFixed(2) || '0.00'}
                 </TableCell>
                 <TableCell className="text-right">
                   <Button
