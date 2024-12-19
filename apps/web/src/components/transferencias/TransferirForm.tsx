@@ -352,18 +352,21 @@ export function TransferirForm() {
 
       if (saveAccount) {
         try {
+          const bankCode = institution || detectedBank?.code || 'unknown';
+          const bankName = BANK_CODES[bankCode]?.name || 'Desconocido';
+
           console.log('Saving contact with data:', {
             userId: currentUser.username,
             clabe: destinationClabe,
             name: beneficiaryName,
-            bank: institution || detectedBank?.code
+            bank: bankName
           });
 
           const newContact = await client.models.Contact.create({
             userId: currentUser.username,
             clabe: destinationClabe,
             name: beneficiaryName,
-            bank: institution || detectedBank?.code || 'unknown'
+            bank: bankName
           }, { 
             authMode: 'userPool',
             selectionSet: ['id', 'clabe', 'name', 'bank']
