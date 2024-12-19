@@ -351,25 +351,41 @@ export function TransferirForm() {
       }
 
       if (saveAccount) {
-        await client.models.Contact.create({
-          userId: currentUser.username,
-          clabe: destinationClabe,
-          name: beneficiaryName,
-          bank: institution
-        }, { 
-          authMode: 'userPool' 
-        });
+        try {
+          console.log('Saving contact with data:', {
+            userId: currentUser.username,
+            clabe: destinationClabe,
+            name: beneficiaryName,
+            bank: institution || detectedBank?.code
+          });
 
-        const result = await client.models.Contact.list({
-          filter: { userId: { eq: currentUser.username }},
-          authMode: 'userPool'
-        });
-        setContacts(result.data?.map(contact => ({
-          id: contact.id,
-          value: contact.clabe,
-          name: contact.name,
-          bank: contact.bank
-        })) || []);
+          const newContact = await client.models.Contact.create({
+            userId: currentUser.username,
+            clabe: destinationClabe,
+            name: beneficiaryName,
+            bank: institution || detectedBank?.code || 'unknown'
+          }, { 
+            authMode: 'userPool',
+            selectionSet: ['id', 'clabe', 'name', 'bank']
+          });
+
+          console.log('Contact creation response:', newContact);
+
+          if (newContact.data) {
+            setContacts(prevContacts => [...prevContacts, {
+              id: newContact.data!.id,
+              value: newContact.data!.clabe,
+              name: newContact.data!.name
+            }]);
+          }
+        } catch (error) {
+          console.error('Failed to create contact:', error);
+          toast({
+            variant: "destructive",
+            title: "Error al guardar el contacto",
+            description: "No se pudo guardar el contacto",
+          });
+        }
       }
 
       const result = await handleTransfer(
