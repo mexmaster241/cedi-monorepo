@@ -31,7 +31,7 @@ declare const schema: import("@aws-amplify/data-schema").ModelSchema<{
                 amount: import("@aws-amplify/data-schema").ModelField<number, "required", undefined>;
                 commission: import("@aws-amplify/data-schema").ModelField<number, "required", undefined>;
                 finalAmount: import("@aws-amplify/data-schema").ModelField<number, "required", undefined>;
-                trackingId: import("@aws-amplify/data-schema").ModelField<string, "required", undefined>;
+                claveRastreo: import("@aws-amplify/data-schema").ModelField<string, "required", undefined>;
                 externalReference: import("@aws-amplify/data-schema").ModelField<import("@aws-amplify/data-schema").Nullable<string>, never, undefined>;
                 internalReference: import("@aws-amplify/data-schema").ModelField<import("@aws-amplify/data-schema").Nullable<string>, never, undefined>;
                 counterpartyName: import("@aws-amplify/data-schema").ModelField<string, "required", undefined>;

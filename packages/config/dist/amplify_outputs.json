@@ -341,8 +341,8 @@
               "isRequired": true,
               "attributes": []
             },
-            "trackingId": {
-              "name": "trackingId",
+            "claveRastreo": {
+              "name": "claveRastreo",
               "isArray": false,
               "type": "String",
               "isRequired": true,

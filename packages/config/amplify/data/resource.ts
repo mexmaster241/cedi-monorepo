@@ -47,7 +47,7 @@ const schema = a.schema({
       finalAmount: a.float().required(),
       
       // Reference information
-      trackingId: a.string().required(),
+      claveRastreo: a.string().required(),
       externalReference: a.string(),
       internalReference: a.string(),
       

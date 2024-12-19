@@ -38,7 +38,7 @@ var schema = backend_1.a.schema({
         amount: backend_1.a.float().required(),
         commission: backend_1.a.float().required(),
         finalAmount: backend_1.a.float().required(),
-        trackingId: backend_1.a.string().required(),
+        claveRastreo: backend_1.a.string().required(),
         externalReference: backend_1.a.string(),
         internalReference: backend_1.a.string(),
         counterpartyName: backend_1.a.string().required(),
