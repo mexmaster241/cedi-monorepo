@@ -22,11 +22,13 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import { Trash2 } from "lucide-react"
 
 interface Contact {
   id: string
   value: string
   name: string
+  alias?: string
 }
 
 const COMMISSION_AMOUNT = 5.80;
@@ -285,7 +287,8 @@ export function TransferirForm() {
         setContacts(result.data?.map(contact => ({
           id: contact.id,
           value: contact.clabe,
-          name: contact.name
+          name: contact.name,
+          alias: contact.alias || contact.name
         })) || []);
       } catch (err) {
         console.error("Error fetching contacts:", err);
@@ -325,88 +328,147 @@ export function TransferirForm() {
       }
 
       const sender = senderDetails.data;
+      const recipient = recipients.data?.[0];
       const recipientBankCode = recipientClabe.substring(0, 3);
       const senderFullName = `${sender.givenName} ${sender.familyName}`;
 
-      // Prepare the outbound transfer payload
+      // Get beneficiary name from the form
+      const beneficiaryNameInput = document.getElementById('beneficiaryName') as HTMLInputElement;
+      const recipientName = beneficiaryNameInput?.value || 'Unknown Recipient';
+
+      // Prepare the outbound payload
       const outboundPayload = prepareOutboundPayload(
         sender.clabe!,
         recipientClabe,
         amount,
         concept,
         senderFullName,
-        recipients.data?.[0]?.givenName 
-          ? `${recipients.data[0].givenName} ${recipients.data[0].familyName}`
-          : 'Unknown Recipient',
+        recipientName,
         recipientBankCode
       );
 
-      // Create movement with PENDING status first
-      const movementData = await client.models.Movement.create({
-        userId: senderUsername,
-        category: 'WIRE',
-        direction: 'OUTBOUND',
-        status: 'PENDING',
-        amount,
-        commission,
-        finalAmount: amount + commission,
-        claveRastreo: outboundPayload.claveRastreo,
-        counterpartyClabe: recipientClabe,
-        counterpartyName: outboundPayload.nombreBeneficiario,
-        counterpartyBank: BANK_CODES[recipientBankCode]?.name || 'Unknown Bank',
-        concept: outboundPayload.conceptoPago,
-        concept2,
-        // Store the outbound payload in metadata for reference
-        metadata: JSON.stringify(outboundPayload),
-        createdAt: new Date().toISOString(),
-      }, { authMode: 'userPool' });
+      // Debug logging
+      console.log('🚀 Outbound Transfer Payload:', {
+        payload: outboundPayload,
+        bankCode: recipientBankCode,
+        institutionCode: getInstitutionCode(recipientBankCode),
+        bankName: BANK_CODES[recipientBankCode]?.name
+      });
 
-      // Send to external bank service
-      try {
-        // Replace with your actual microservice endpoint
-        const response = await fetch('YOUR_MICROSERVICE_ENDPOINT', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            // Add any necessary authentication headers
-          },
-          body: JSON.stringify(outboundPayload)
-        });
+      // 2. Find commission account
+      const [commissionAccount] = await Promise.all([
+        client.models.User.list({
+          filter: { clabe: { eq: COMMISSION_CLABE }},
+          authMode: 'apiKey',
+          selectionSet: ['id', 'clabe', 'balance']
+        })
+      ]);
 
-        if (!response.ok) {
-          throw new Error('Failed to process external transfer');
-        }
+      if (!commissionAccount.data?.length) {
+        throw new Error('Commission account not found');
+      }
 
-        // Update movement status to PROCESSING
-        await client.models.Movement.update({
-          id: movementData.data!.id,
-          status: 'PROCESSING'
-        }, { authMode: 'userPool' });
+      const commissionRecipient = commissionAccount.data[0];
 
+      // 3. Update balances
+      await Promise.all([
         // Update sender's balance
-        await client.models.User.update({
+        client.models.User.update({
           id: senderUsername,
           balance: sender.balance! - (amount + commission)
         }, { 
           authMode: 'userPool',
           selectionSet: ['id', 'balance']
-        });
+        }),
 
-        return {
-          success: true,
-          newSenderBalance: sender.balance! - (amount + commission),
-          movementId: movementData.data!.id
-        };
+        // If recipient is in our system, update their balance
+        ...(recipient ? [
+          client.models.User.update({
+            id: recipient.id,
+            balance: (recipient.balance || 0) + amount
+          }, {
+            authMode: 'apiKey',
+            selectionSet: ['id', 'balance']
+          })
+        ] : []),
 
-      } catch (error) {
-        // If external transfer fails, update movement status to FAILED
-        await client.models.Movement.update({
-          id: movementData.data!.id,
-          status: 'FAILED'
-        }, { authMode: 'userPool' });
+        // Update commission account balance
+        client.models.User.update({
+          id: commissionRecipient.id,
+          balance: (commissionRecipient.balance || 0) + commission
+        }, {
+          authMode: 'apiKey',
+          selectionSet: ['id', 'balance']
+        })
+      ]);
 
-        throw error;
-      }
+      // 4. Create movement records
+      const claveRastreo = outboundPayload.claveRastreo;
+      
+      await Promise.all([
+        // Sender's movement record
+        client.models.Movement.create({
+          userId: senderUsername,
+          category: 'WIRE',
+          direction: 'OUTBOUND',
+          status: 'COMPLETED',
+          amount,
+          commission,
+          finalAmount: amount + commission,
+          claveRastreo,
+          counterpartyClabe: recipientClabe,
+          counterpartyName: recipientName,
+          counterpartyBank: BANK_CODES[recipientBankCode]?.name || 'Unknown Bank',
+          concept,
+          metadata: JSON.stringify(outboundPayload),
+          createdAt: new Date().toISOString(),
+        }, { authMode: 'userPool' }),
+
+        // If recipient is in our system, create their movement record
+        ...(recipient ? [
+          client.models.Movement.create({
+            userId: recipient.id,
+            category: 'WIRE',
+            direction: 'INBOUND',
+            status: 'COMPLETED',
+            amount,
+            commission: 0,
+            finalAmount: amount,
+            claveRastreo,
+            counterpartyClabe: sender.clabe || senderUsername,
+            counterpartyName: senderFullName,
+            counterpartyBank: 'CEDI',
+            concept,
+            concept2,
+            metadata: JSON.stringify(outboundPayload),
+            createdAt: new Date().toISOString(),
+          }, { authMode: 'apiKey' })
+        ] : []),
+
+        // Commission movement record
+        client.models.Movement.create({
+          userId: commissionRecipient.id,
+          category: 'COMMISSION',
+          direction: 'INBOUND',
+          status: 'COMPLETED',
+          amount: commission,
+          commission: 0,
+          finalAmount: commission,
+          claveRastreo,
+          counterpartyClabe: sender.clabe || senderUsername,
+          counterpartyName: senderFullName,
+          counterpartyBank: 'CEDI',
+          concept: 'Comisión por transferencia',
+          metadata: JSON.stringify(outboundPayload),
+          createdAt: new Date().toISOString(),
+        }, { authMode: 'apiKey' })
+      ]);
+
+      return {
+        success: true,
+        newSenderBalance: sender.balance! - (amount + commission),
+        debugPayload: outboundPayload
+      };
 
     } catch (error) {
       console.error('Transfer error:', error);
@@ -438,11 +500,13 @@ export function TransferirForm() {
         try {
           const bankCode = institution || detectedBank?.code || 'unknown';
           const bankName = BANK_CODES[bankCode]?.name || 'Desconocido';
+          const alias = formData.get('contactAlias') as string;
 
           console.log('Saving contact with data:', {
             userId: currentUser.username,
             clabe: destinationClabe,
             name: beneficiaryName,
+            alias: alias || beneficiaryName,
             bank: bankName
           });
 
@@ -450,19 +514,20 @@ export function TransferirForm() {
             userId: currentUser.username,
             clabe: destinationClabe,
             name: beneficiaryName,
+            alias: alias || beneficiaryName,
             bank: bankName
           }, { 
             authMode: 'userPool',
-            selectionSet: ['id', 'clabe', 'name', 'bank']
+            selectionSet: ['id', 'clabe', 'name', 'alias', 'bank']
           });
 
           console.log('Contact creation response:', newContact);
-
           if (newContact.data) {
             setContacts(prevContacts => [...prevContacts, {
               id: newContact.data!.id,
               value: newContact.data!.clabe,
-              name: newContact.data!.name
+              name: newContact.data!.name,
+              alias: newContact.data!.alias || undefined
             }]);
           }
         } catch (error) {
@@ -528,11 +593,14 @@ export function TransferirForm() {
       clabeInput.value = contact.value;
     }
 
-    // Find and update the beneficiary name input
+    // Find and update the beneficiary name input with the actual name
     const nameInput = document.getElementById('beneficiaryName') as HTMLInputElement;
     if (nameInput) {
       nameInput.value = contact.name;
     }
+
+    // Trigger CLABE validation if needed
+    handleClabeChange({ target: { value: contact.value } } as React.ChangeEvent<HTMLInputElement>);
   };
 
   const handleClabeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -594,6 +662,31 @@ export function TransferirForm() {
     };
   };
 
+  const handleDeleteContact = async (contactId: string) => {
+    try {
+      await client.models.Contact.delete({
+        id: contactId
+      }, { 
+        authMode: 'userPool' 
+      });
+
+      // Update local state to remove the deleted contact
+      setContacts(prevContacts => prevContacts.filter(contact => contact.id !== contactId));
+      
+      toast({
+        title: "Contacto eliminado",
+        description: "El contacto ha sido eliminado correctamente",
+      });
+    } catch (error) {
+      console.error('Failed to delete contact:', error);
+      toast({
+        variant: "destructive",
+        title: "Error al eliminar el contacto",
+        description: "No se pudo eliminar el contacto",
+      });
+    }
+  };
+
   return (
     <div className="grid grid-cols-12 gap-6">
       {/* Left side - Contact List */}
@@ -614,14 +707,33 @@ export function TransferirForm() {
                 filteredContacts.map(contact => (
                   <Card 
                     key={contact.id} 
-                    className="p-3 cursor-pointer hover:bg-accent"
-                    onClick={() => handleContactSelect(contact)}
+                    className="p-3 hover:bg-accent"
                   >
-                    <div className="space-y-1">
-                      <p className="font-medium font-clash-display">{contact.name}</p>
-                      <p className="text-sm text-muted-foreground font-clash-display">
-                        {contact.value}
-                      </p>
+                    <div className="flex justify-between items-center">
+                      <div 
+                        className="flex-1 cursor-pointer"
+                        onClick={() => handleContactSelect(contact)}
+                      >
+                        <div className="space-y-1">
+                          <p className="font-medium font-clash-display">
+                            {contact.alias || contact.name}
+                          </p>
+                          <p className="text-sm text-muted-foreground font-clash-display">
+                            {contact.value}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteContact(contact.id);
+                        }}
+                        className="h-8 w-8"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </Card>
                 ))
@@ -782,13 +894,34 @@ export function TransferirForm() {
 
             {/* Save Account Checkbox */}
             <div className="flex items-center space-x-2">
-              <Checkbox id="saveAccount" name="saveAccount" />
+              <Checkbox 
+                id="saveAccount" 
+                name="saveAccount" 
+                onCheckedChange={(checked) => {
+                  // Find the alias input container and toggle its visibility
+                  const aliasContainer = document.getElementById('aliasContainer');
+                  if (aliasContainer) {
+                    aliasContainer.style.display = checked ? 'block' : 'none';
+                  }
+                }}
+              />
               <Label 
                 htmlFor="saveAccount" 
                 className="text-sm font-clash-display leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 Guardar cuenta
               </Label>
+            </div>
+
+            {/* Alias input - hidden by default */}
+            <div id="aliasContainer" className="hidden">
+              <Label className="font-clash-display" htmlFor="contactAlias">Alias para el contacto</Label>
+              <Input 
+                className="font-clash-display"
+                id="contactAlias" 
+                name="contactAlias"
+                placeholder="Ej: Mamá, Trabajo, etc." 
+              />
             </div>
 
             <Button type="submit" className="w-full font-clash-display" disabled={loading}>
