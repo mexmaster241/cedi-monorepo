@@ -9,6 +9,7 @@ import Image from 'next/image'
 import { Amplify } from 'aws-amplify'
 import { amplifyConfig } from 'config'
 import { Toaster } from "@/components/ui/toaster";
+import { SessionWarning } from "@/components/context/session-warning";
 
 Amplify.configure(amplifyConfig)
 
@@ -48,6 +49,7 @@ export default function DashboardLayout({
   return (
     <>
       <BankingSidebar>{children}</BankingSidebar>
+      <SessionWarning />
       <Toaster />
     </>
   )

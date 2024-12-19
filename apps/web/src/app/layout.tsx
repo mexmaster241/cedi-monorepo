@@ -6,6 +6,7 @@ import { Amplify } from 'aws-amplify';
 import { amplifyConfig } from 'config';
 import ConfigureAmplifyClientSide from "@/components/auth/ConfigureAmplify";
 import { Toaster } from "@/components/ui/toaster";
+import { SecurityProvider } from '@/components/context/Securitycontex';
 
 Amplify.configure(amplifyConfig, { ssr: true });
 
@@ -48,7 +49,9 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${clashDisplay.variable} antialiased`}>
         <ConfigureAmplifyClientSide />
-        <ClientLayout>{children}</ClientLayout>
+        <SecurityProvider>
+          <ClientLayout>{children}</ClientLayout>
+        </SecurityProvider>
         <Toaster />
       </body>
     </html>

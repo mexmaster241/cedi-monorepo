@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useSecurity } from '@/components/context/Securitycontex';
 
 // Add login form schema
 const loginSchema = z.object({
@@ -32,6 +33,7 @@ export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const { requestLocationPermission } = useSecurity();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -47,6 +49,17 @@ export function LoginForm() {
     try {
       setIsLoading(true);
       
+      // Request location permission before login
+      const hasLocation = await requestLocationPermission();
+      if (!hasLocation) {
+        toast({
+          title: "Ubicación requerida",
+          description: "Por favor permite el acceso a tu ubicación para continuar",
+          variant: "destructive",
+        });
+        return;
+      }
+
       await signIn({
         username: data.email,
         password: data.password,
