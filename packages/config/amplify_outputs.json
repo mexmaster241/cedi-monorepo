@@ -445,6 +445,69 @@
               "type": "AWSDateTime",
               "isRequired": false,
               "attributes": []
+            },
+            "rfcCurpBeneficiario": {
+              "name": "rfcCurpBeneficiario",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "rfcCurpOrdenante": {
+              "name": "rfcCurpOrdenante",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "tipoCuentaBeneficiario": {
+              "name": "tipoCuentaBeneficiario",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "tipoCuentaOrdenante": {
+              "name": "tipoCuentaOrdenante",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "tipoPago": {
+              "name": "tipoPago",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "institucionContraparte": {
+              "name": "institucionContraparte",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "institucionOperante": {
+              "name": "institucionOperante",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "empresa": {
+              "name": "empresa",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "referenciaNumerica": {
+              "name": "referenciaNumerica",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
             }
           },
           "syncable": true,

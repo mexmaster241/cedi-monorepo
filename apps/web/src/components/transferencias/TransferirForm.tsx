@@ -41,7 +41,7 @@ const BANK_CODES: { [key: string]: Bank } = {
   "002": { code: "002", name: "BANAMEX" },
   "006": { code: "006", name: "BANCOMEXT" },
   "009": { code: "009", name: "BANOBRAS" },
-  "012": { code: "012", name: "BBVA BANCOMER" },
+  "012": { code: "012", name: "BBVA MEXICO" },
   "014": { code: "014", name: "SANTANDER" },
   "019": { code: "019", name: "BANJERCITO" },
   "021": { code: "021", name: "HSBC" },
@@ -138,6 +138,105 @@ const BANK_CODES: { [key: string]: Bank } = {
   "999": { code: "999", name: "N/A" }
 };
 
+const BANK_TO_INSTITUTION: { [key: string]: string } = {
+  "002": "40002", // BANAMEX
+  "006": "37006", // BANCOMEXT
+  "009": "37009", // BANOBRAS
+  "012": "40012", // BBVA MEXICO
+  "014": "40014", // SANTANDER
+  "019": "37019", // BANJERCITO
+  "021": "40021", // HSBC
+  "030": "40030", // BAJIO
+  "036": "40036", // INBURSA
+  "042": "40042", // MIFEL
+  "044": "40044", // SCOTIABANK
+  "058": "40058", // BANREGIO
+  "059": "40059", // INVEX
+  "060": "40060", // BANSI
+  "062": "40062", // AFIRME
+  "072": "40072", // BANORTE
+  "106": "40106", // BANK OF AMERICA
+  "108": "40108", // MUFG
+  "110": "40110", // JP MORGAN
+  "112": "40112", // BMONEX
+  "113": "40113", // VE POR MAS
+  "124": "40124", // CBM BANCO
+  "127": "40127", // AZTECA
+  "128": "40128", // AUTOFIN
+  "129": "40129", // BARCLAYS
+  "130": "40130", // COMPARTAMOS
+  "132": "40132", // MULTIVA BANCO
+  "133": "40133", // ACTINVER
+  "135": "37135", // NAFIN
+  "136": "40136", // INTERCAM BANCO
+  "137": "40137", // BANCOPPEL
+  "138": "40138", // ABC CAPITAL
+  "140": "40140", // CONSUBANCO
+  "141": "40141", // VOLKSWAGEN
+  "143": "40143", // CIBANCO
+  "145": "40145", // BBASE
+  "147": "40147", // BANKAOOL
+  "148": "40148", // PAGATODO
+  "150": "40150", // INMOBILIARIO
+  "151": "40151", // DONDE
+  "152": "40152", // BANCREA
+  "154": "40154", // BANCO COVALTO
+  "155": "40155", // ICBC
+  "156": "40156", // SABADELL
+  "157": "40157", // SHINHAN
+  "158": "40158", // MIZUHO BANK
+  "159": "40159", // BANK OF CHINA
+  "160": "40160", // BANCO S3
+  "166": "37166", // BaBien
+  "168": "37168", // HIPOTECARIA FED
+  "600": "90600", // MONEXCB
+  "601": "90601", // GBM
+  "602": "90602", // MASARI
+  "605": "90605", // VALUE
+  "608": "90608", // VECTOR
+  "616": "90616", // FINAMEX
+  "617": "90617", // VALMEX
+  "620": "90620", // PROFUTURO
+  "630": "90630", // CB INTERCAM
+  "631": "90631", // CI BOLSA
+  "634": "90634", // FINCOMUN
+  "638": "90638", // NU MEXICO
+  "642": "90642", // REFORMA
+  "646": "90646", // STP
+  "652": "90652", // CREDICAPITAL
+  "653": "90653", // KUSPIT
+  "656": "90656", // UNAGRA
+  "659": "90659", // ASP INTEGRA OPC
+  "661": "90661", // ALTERNATIVOS
+  "670": "90670", // LIBERTAD
+  "677": "90677", // CAJA POP MEXICA
+  "680": "90680", // CRISTOBAL COLON
+  "683": "90683", // CAJA TELEFONIST
+  "684": "90684", // TRANSFER
+  "685": "90685", // FONDO (FIRA)
+  "686": "90686", // INVERCAP
+  "689": "90689", // FOMPED
+  "699": "90699", // FONDEADORA
+  "703": "90703", // TESORED
+  "706": "90706", // ARCUS
+  "710": "90710", // NVIO
+  "722": "90722", // Mercado Pago W
+  "723": "90723", // CUENCA
+  "728": "90728", // SPIN BY OXXO
+  "902": "90902", // INDEVAL
+  "903": "90903", // CoDi Valida
+};
+
+// Special cases for secondary institutions
+const SECONDARY_INSTITUTIONS: { [key: string]: string } = {
+  "002": "91802", // BANAMEX2
+  "012": "91812", // BBVA BANCOMER2
+  "014": "91814", // SANTANDER2
+  "021": "91821", // HSBC2
+  "072": "91872", // BANORTE2
+  "127": "91927", // AZTECA2
+};
+
 export function TransferirForm() {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -225,104 +324,89 @@ export function TransferirForm() {
         throw new Error('Insufficient funds');
       }
 
-      if (!recipients.data?.length) {
-        throw new Error('Recipient not found');
-      }
-
       const sender = senderDetails.data;
-      const recipient = recipients.data[0];
-
-      // Create full names
+      const recipientBankCode = recipientClabe.substring(0, 3);
       const senderFullName = `${sender.givenName} ${sender.familyName}`;
-      const recipientFullName = `${recipient.givenName} ${recipient.familyName}`;
 
-      // 2. Find both recipient and commission account with full details
-      const [commissionAccount] = await Promise.all([
-        client.models.User.list({
-          filter: { clabe: { eq: COMMISSION_CLABE }},
-          authMode: 'apiKey',
-          selectionSet: ['id', 'clabe', 'balance']
-        })
-      ]);
+      // Prepare the outbound transfer payload
+      const outboundPayload = prepareOutboundPayload(
+        sender.clabe!,
+        recipientClabe,
+        amount,
+        concept,
+        senderFullName,
+        recipients.data?.[0]?.givenName 
+          ? `${recipients.data[0].givenName} ${recipients.data[0].familyName}`
+          : 'Unknown Recipient',
+        recipientBankCode
+      );
 
-      if (!commissionAccount.data?.length) {
-        throw new Error('Commission account not found');
-      }
+      // Create movement with PENDING status first
+      const movementData = await client.models.Movement.create({
+        userId: senderUsername,
+        category: 'WIRE',
+        direction: 'OUTBOUND',
+        status: 'PENDING',
+        amount,
+        commission,
+        finalAmount: amount + commission,
+        claveRastreo: outboundPayload.claveRastreo,
+        counterpartyClabe: recipientClabe,
+        counterpartyName: outboundPayload.nombreBeneficiario,
+        counterpartyBank: BANK_CODES[recipientBankCode]?.name || 'Unknown Bank',
+        concept: outboundPayload.conceptoPago,
+        concept2,
+        // Store the outbound payload in metadata for reference
+        metadata: JSON.stringify(outboundPayload),
+        createdAt: new Date().toISOString(),
+      }, { authMode: 'userPool' });
 
-      const commissionRecipient = commissionAccount.data[0];
+      // Send to external bank service
+      try {
+        // Replace with your actual microservice endpoint
+        const response = await fetch('YOUR_MICROSERVICE_ENDPOINT', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            // Add any necessary authentication headers
+          },
+          body: JSON.stringify(outboundPayload)
+        });
 
-      // 3. Update balances (unchanged)
-      await Promise.all([
-        client.models.User.update({
+        if (!response.ok) {
+          throw new Error('Failed to process external transfer');
+        }
+
+        // Update movement status to PROCESSING
+        await client.models.Movement.update({
+          id: movementData.data!.id,
+          status: 'PROCESSING'
+        }, { authMode: 'userPool' });
+
+        // Update sender's balance
+        await client.models.User.update({
           id: senderUsername,
           balance: sender.balance! - (amount + commission)
         }, { 
           authMode: 'userPool',
           selectionSet: ['id', 'balance']
-        }),
+        });
 
-        client.models.User.update({
-          id: recipient.id,
-          balance: (recipient.balance || 0) + amount
-        }, {
-          authMode: 'apiKey',
-          selectionSet: ['id', 'balance']
-        }),
+        return {
+          success: true,
+          newSenderBalance: sender.balance! - (amount + commission),
+          movementId: movementData.data!.id
+        };
 
-        client.models.User.update({
-          id: commissionRecipient.id,
-          balance: (commissionRecipient.balance || 0) + commission
-        }, {
-          authMode: 'apiKey',
-          selectionSet: ['id', 'balance']
-        })
-      ]);
+      } catch (error) {
+        // If external transfer fails, update movement status to FAILED
+        await client.models.Movement.update({
+          id: movementData.data!.id,
+          status: 'FAILED'
+        }, { authMode: 'userPool' });
 
-      // 4. Create movement records with proper names
-      const claveRastreo = `CEDI${Math.floor(10000000 + Math.random() * 90000000)}`;
-      
-      await Promise.all([
-        // Sender's movement record
-        client.models.Movement.create({
-          userId: senderUsername,
-          category: 'WIRE',
-          direction: 'OUTBOUND',
-          status: 'COMPLETED',
-          amount,
-          commission,
-          finalAmount: amount + commission,
-          claveRastreo,
-          counterpartyClabe: recipientClabe,
-          counterpartyName: recipientFullName,
-          counterpartyBank: 'CEDI',
-          concept,
-          createdAt: new Date().toISOString(),
-        }, { authMode: 'userPool' }),
-
-        // Recipient's movement record
-        client.models.Movement.create({
-          userId: recipient.id,
-          category: 'WIRE',
-          direction: 'INBOUND',
-          status: 'COMPLETED',
-          amount,
-          commission: 0,
-          finalAmount: amount,
-          claveRastreo,
-          counterpartyClabe: sender.clabe || senderUsername,
-          counterpartyName: senderFullName,
-          counterpartyBank: 'CEDI',
-          concept,
-          concept2,
-          createdAt: new Date().toISOString(),
-        }, { authMode: 'apiKey' })
-      ]);
-
-      return {
-        success: true,
-        newSenderBalance: sender.balance! - (amount + commission),
-        newRecipientBalance: (recipient.balance || 0) + amount
-      };
+        throw error;
+      }
 
     } catch (error) {
       console.error('Transfer error:', error);
@@ -466,6 +550,48 @@ export function TransferirForm() {
     } else {
       setDetectedBank(null);
     }
+  };
+
+  const getInstitutionCode = (bankCode: string) => {
+    // First try the primary institution code
+    const primaryCode = BANK_TO_INSTITUTION[bankCode];
+    if (primaryCode) return primaryCode;
+    
+    // Then check secondary institutions
+    const secondaryCode = SECONDARY_INSTITUTIONS[bankCode];
+    if (secondaryCode) return secondaryCode;
+    
+    // Default to STP if no matching institution is found
+    return "90646";
+  };
+
+  const prepareOutboundPayload = (
+    senderClabe: string,
+    recipientClabe: string,
+    amount: number,
+    concept: string,
+    senderName: string,
+    recipientName: string,
+    bankCode: string,
+  ) => {
+    return {
+      claveRastreo: `CEDI${Math.floor(10000000 + Math.random() * 90000000)}`,
+      conceptoPago: concept,
+      cuentaOrdenante: senderClabe,
+      cuentaBeneficiario: recipientClabe,
+      empresa: "CEDI",
+      institucionContraparte: getInstitutionCode(bankCode),
+      institucionOperante: "90646",
+      monto: amount.toFixed(2),
+      nombreBeneficiario: recipientName,
+      nombreOrdenante: senderName,
+      referenciaNumerica: Math.floor(100000 + Math.random() * 900000).toString(),
+      rfcCurpBeneficiario: "ND",
+      rfcCurpOrdenante: "ND",
+      tipoCuentaBeneficiario: "40",
+      tipoCuentaOrdenante: "40",
+      tipoPago: "1"
+    };
   };
 
   return (

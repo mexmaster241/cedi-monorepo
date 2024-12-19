@@ -66,6 +66,15 @@ const schema = a.schema({
       createdAt: a.datetime(),
       updatedAt: a.datetime(),
       completedAt: a.datetime(),
+      rfcCurpBeneficiario: a.string(),
+      rfcCurpOrdenante: a.string(),
+      tipoCuentaBeneficiario: a.string(),
+      tipoCuentaOrdenante: a.string(),
+      tipoPago: a.string(),
+      institucionContraparte: a.string(),
+      institucionOperante: a.string(),
+      empresa: a.string(),
+      referenciaNumerica: a.string(),
     })
     .authorization((allow) => [
       allow.owner().to(['read', 'create', 'update']),
