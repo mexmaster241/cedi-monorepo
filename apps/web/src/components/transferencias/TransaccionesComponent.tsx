@@ -39,7 +39,7 @@ interface Movement {
   amount: number;
   commission: number;
   finalAmount: number;
-  trackingId: string;
+  claveRastreo: string;
   externalReference?: string;
   internalReference?: string;
   counterpartyName: string;
@@ -154,7 +154,7 @@ export default function MovimientosFilter() {
         baseFilter.or = [
           { counterpartyName: { contains: search.toLowerCase() } },
           { concept: { contains: search.toLowerCase() } },
-          { trackingId: { contains: search } },
+          { claveRastreo: { contains: search } },
           { internalReference: { contains: search } },
           { externalReference: { contains: search } }
         ];
@@ -280,7 +280,7 @@ export default function MovimientosFilter() {
       movement.createdAt ? new Date(movement.createdAt).toLocaleString() : '-',
       getTypeLabel(movement.category, movement.direction),
       getStatusLabel(movement.status),
-      movement.externalReference || movement.internalReference || movement.trackingId || '-',
+      movement.externalReference || movement.internalReference || movement.claveRastreo || '-',
       movement.concept || '-',
       movement.counterpartyName,
       movement.counterpartyBank,

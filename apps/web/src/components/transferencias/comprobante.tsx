@@ -3,7 +3,7 @@ import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/render
 
 interface Movement {
     id: string;
-    trackingId: string;
+    claveRastreo: string;
     createdAt?: string;
     counterpartyName: string;
     counterpartyClabe: string;
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
 
 interface Movement {
     id: string;
-    trackingId: string;
+    claveRastreo: string;
     createdAt?: string;
     counterpartyName: string;
     counterpartyClabe: string;
@@ -135,7 +135,7 @@ export const TransactionProofPDF = ({ movement }: { movement: Movement }) => {
                         src="/logotipo.png"
                     />
                     <Text style={styles.title}>Comprobante de Transferencia</Text>
-                    <Text style={styles.subtitle}>#{movement.trackingId}</Text>
+                    <Text style={styles.subtitle}>#{movement.claveRastreo}</Text>
                 </View>
 
                 <View style={styles.section}>

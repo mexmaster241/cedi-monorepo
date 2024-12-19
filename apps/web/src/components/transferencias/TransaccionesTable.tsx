@@ -28,7 +28,7 @@ interface Movement {
   amount: number;
   commission: number;
   finalAmount: number;
-  trackingId: string;
+  claveRastreo: string;
   externalReference?: string;
   internalReference?: string;
   counterpartyName: string;
@@ -90,7 +90,7 @@ export function TransaccionesTable({
   };
 
   const getReference = (movement: Movement) => {
-    return movement.externalReference || movement.internalReference || movement.trackingId || '-';
+    return movement.externalReference || movement.internalReference || movement.claveRastreo || '-';
   };
 
   return (

@@ -279,7 +279,7 @@ export function TransferirForm() {
       ]);
 
       // 4. Create movement records with proper names
-      const trackingId = `CEDI${Date.now()}`;
+      const claveRastreo = `CEDI${Math.floor(10000000 + Math.random() * 90000000)}`;
       
       await Promise.all([
         // Sender's movement record
@@ -291,7 +291,7 @@ export function TransferirForm() {
           amount,
           commission,
           finalAmount: amount + commission,
-          trackingId,
+          claveRastreo,
           counterpartyClabe: recipientClabe,
           counterpartyName: recipientFullName,
           counterpartyBank: 'CEDI',
@@ -308,7 +308,7 @@ export function TransferirForm() {
           amount,
           commission: 0,
           finalAmount: amount,
-          trackingId,
+          claveRastreo,
           counterpartyClabe: sender.clabe || senderUsername,
           counterpartyName: senderFullName,
           counterpartyBank: 'CEDI',

@@ -12,7 +12,7 @@ import { TransactionProofPDF } from './comprobante';
 
 interface Movement {
     id: string;
-    trackingId: string;
+    claveRastreo: string;
     createdAt?: string;
     counterpartyName: string;
     direction: string;
@@ -59,7 +59,7 @@ export function TransactionCardDetailModal({ isOpen, onClose, movement }: Transa
             // Create a temporary link element
             const link = document.createElement('a');
             link.href = url;
-            link.download = `comprobante-${movement.trackingId}.pdf`;
+            link.download = `comprobante-${movement.claveRastreo}.pdf`;
             
             // Trigger the download
             document.body.appendChild(link);
@@ -84,7 +84,7 @@ export function TransactionCardDetailModal({ isOpen, onClose, movement }: Transa
                     <div className="space-y-2 text-sm">
                         <div className="text-center">
                             <h3 className="font-clash-display text-lg">Comprobante de Transferencia</h3>
-                            <p className="text-muted-foreground font-clash-display">#{movement.trackingId}</p>
+                            <p className="text-muted-foreground font-clash-display">#{movement.claveRastreo}</p>
                         </div>
 
                         <div className="border-t border-b py-4 space-y-2">
