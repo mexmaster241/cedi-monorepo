@@ -7,6 +7,20 @@ import { useEffect, useRef } from 'react';
 import { Image } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router';
 
+interface MovementData {
+  amount: number;
+  commission: number;
+  finalAmount: number;
+  recipientName: string;
+  beneficiaryName: string;
+  bankName: string;
+  accountNumber: string;
+  claveRastreo?: string;
+  concept?: string;
+  concept2?: string;
+  status?: string;
+}
+
 export default function ProcessingScreen() {
   const params = useLocalSearchParams<{ movementData: string }>();
   const loadingAnim = useRef(new Animated.Value(0)).current;
@@ -28,18 +42,26 @@ export default function ProcessingScreen() {
       ])
     ).start();
 
+    // Parse the movement data to ensure all fields are present
+    const movementData = params.movementData ? JSON.parse(params.movementData) as MovementData : null;
+    
     // Navigate to success screen after 10 seconds
     const timer = setTimeout(() => {
       router.replace({
         pathname: '/(tabs)/deposit/success',
         params: {
-          movementData: params.movementData
+          movementData: JSON.stringify({
+            ...movementData,
+            beneficiaryName: movementData?.recipientName,
+            bankName: movementData?.bankName,
+            status: 'COMPLETED'
+          })
         }
       });
     }, 10000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [params.movementData]);
 
   return (
     <SafeAreaView style={styles.container}>

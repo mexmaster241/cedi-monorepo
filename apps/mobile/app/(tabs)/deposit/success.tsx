@@ -13,6 +13,8 @@ interface Movement {
   claveRastreo: string;
   createdAt?: string;
   counterpartyName: string;
+  beneficiaryName: string;
+  bankName: string;
   direction: string;
   amount: number;
   commission: number;
@@ -36,11 +38,13 @@ export default function SuccessScreen() {
         const parsedMovement = JSON.parse(params.movementData);
         const processedMovement = {
           ...parsedMovement,
+          beneficiaryName: parsedMovement.beneficiaryName,
+          bankName: parsedMovement.bankName,
           amount: Number(parsedMovement.amount),
           commission: Number(parsedMovement.commission),
           finalAmount: Number(parsedMovement.amount) + Number(parsedMovement.commission),
           createdAt: new Date().toISOString(),
-          claveRastreo: parsedMovement.claveRastreo || `TR-${Date.now()}`,
+          claveRastreo: parsedMovement.claveRastreo,
           status: parsedMovement.status || 'COMPLETED'
         };
         setMovement(processedMovement);
@@ -94,11 +98,11 @@ export default function SuccessScreen() {
             </div>
             <div class="row">
               <span class="label">Beneficiario:</span>
-              <span>${movement.counterpartyName}</span>
+              <span>${movement.beneficiaryName}</span>
             </div>
             <div class="row">
               <span class="label">Banco:</span>
-              <span>${movement.counterpartyBank}</span>
+              <span>${movement.bankName}</span>
             </div>
             ${movement.counterpartyClabe ? `
               <div class="row">
@@ -198,11 +202,11 @@ export default function SuccessScreen() {
             />
             <DetailRow 
               label="Beneficiario" 
-              value={movement?.counterpartyName || ''} 
+              value={movement?.beneficiaryName || ''} 
             />
             <DetailRow 
               label="Banco" 
-              value={movement?.counterpartyBank || ''} 
+              value={movement?.bankName || ''} 
             />
             {movement?.counterpartyClabe && (
               <DetailRow 

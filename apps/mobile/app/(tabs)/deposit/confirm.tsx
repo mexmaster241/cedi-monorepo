@@ -463,9 +463,12 @@ export default function ConfirmDepositScreen() {
               commission: COMMISSION_AMOUNT,
               finalAmount: Number(amount) + COMMISSION_AMOUNT,
               recipientName,
+              beneficiaryName: recipientName,
+              bankName: BANK_CODES[accountNumber.substring(0, 3)]?.name,
               accountNumber,
               concept,
-              concept2
+              concept2,
+              claveRastreo: ''
             })
           }
         });
