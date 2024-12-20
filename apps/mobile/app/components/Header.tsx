@@ -5,9 +5,11 @@ import { useState, useEffect } from 'react';
 import { generateClient } from 'aws-amplify/api';
 import { getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import { Schema } from "config/amplify/data/resource"
+import { Skeleton } from './Skeleton';
 
 export function Header() {
   const [fullName, setFullName] = useState("Loading...");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchUserData() {
@@ -18,6 +20,8 @@ export function Header() {
       } catch (err) {
         console.error("Error fetching user data:", err);
         setFullName("Usuario");
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchUserData();
@@ -34,7 +38,11 @@ export function Header() {
       </View>
       <View style={styles.welcomeContainer}>
         <Text style={styles.greeting}>Bienvenido de nuevo</Text>
-        <Text style={styles.name}>{fullName}</Text>
+        {isLoading ? (
+          <Skeleton width={150} height={28} />
+        ) : (
+          <Text style={styles.name}>{fullName}</Text>
+        )}
       </View>
     </View>
   );

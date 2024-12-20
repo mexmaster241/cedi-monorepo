@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import { generateClient } from 'aws-amplify/api';
 import { getCurrentUser } from 'aws-amplify/auth';
 import { Schema } from "config/amplify/data/resource"
+import { Skeleton } from './Skeleton';
 
 export function BalanceCard() {
   const [balance, setBalance] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const client = generateClient<Schema>();
 
   useEffect(() => {
@@ -24,6 +26,8 @@ export function BalanceCard() {
       } catch (err) {
         console.error("Error fetching balance:", err);
         setBalance(0);
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchBalance();
@@ -38,7 +42,11 @@ export function BalanceCard() {
   return (
     <View style={styles.card}>
       <Text style={styles.label}>Balance disponible</Text>
-      <Text style={styles.balance}>${formattedBalance}</Text>
+      {isLoading ? (
+        <Skeleton width={200} height={38} />
+      ) : (
+        <Text style={styles.balance}>${formattedBalance}</Text>
+      )}
     </View>
   );
 }

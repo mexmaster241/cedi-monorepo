@@ -10,9 +10,12 @@ import { generateClient } from 'aws-amplify/api';
 import { getCurrentUser } from 'aws-amplify/auth';
 import { Schema } from "config/amplify/data/resource";
 import { useState, useEffect } from 'react';
+import { Skeleton } from '@/app/components/Skeleton';
+import Toast from 'react-native-toast-message';
 
 export default function Card() {
   const [clabe, setClabe] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const client = generateClient<Schema>();
 
   useEffect(() => {
@@ -30,6 +33,8 @@ export default function Card() {
       } catch (err) {
         console.error("Error fetching CLABE:", err);
         setClabe("");
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchClabe();
@@ -37,8 +42,13 @@ export default function Card() {
 
   const copyToClipboard = async () => {
     await Clipboard.setStringAsync(clabe);
-    // wip notification
-    Alert.alert('CLABE copiada al portapapeles');
+    Toast.show({
+      type: 'success',
+      text1: 'CLABE copiada',
+      text2: 'La CLABE ha sido copiada al portapapeles',
+      position: 'bottom',
+      visibilityTime: 2000,
+    });
   };
 
   return (
@@ -47,7 +57,7 @@ export default function Card() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity 
-            onPress={() => router.back()}
+            onPress={() => router.push("/")}
             style={styles.backButton}
           >
             <Feather name="arrow-left" size={24} color={colors.black} />
@@ -70,7 +80,11 @@ export default function Card() {
           <View style={styles.clabeContainer}>
             <Text style={styles.clabeTitle}>CLABE</Text>
             <View style={styles.clabeBox}>
-              <Text style={styles.clabeNumber}>{clabe || "Loading..."}</Text>
+              {isLoading ? (
+                <Skeleton width={200} height={24} />
+              ) : (
+                <Text style={styles.clabeNumber}>{clabe}</Text>
+              )}
               <TouchableOpacity onPress={copyToClipboard}>
                 <Ionicons name="copy-outline" size={24} color={colors.black} />
               </TouchableOpacity>
@@ -78,6 +92,21 @@ export default function Card() {
           </View>
         </View>
       </SafeAreaView>
+      <Toast 
+        config={{
+          success: (props) => (
+            <View style={toastStyles.container}>
+              <View style={toastStyles.iconContainer}>
+                <Feather name="check" size={24} color={colors.black} />
+              </View>
+              <View style={toastStyles.textContainer}>
+                <Text style={toastStyles.title}>{props.text1}</Text>
+                <Text style={toastStyles.message}>{props.text2}</Text>
+              </View>
+            </View>
+          )
+        }}
+      />
     </>
   );
 }
@@ -155,5 +184,48 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: colors.black,
     marginLeft: 16,
+  },
+});
+
+const toastStyles = StyleSheet.create({
+  container: {
+    width: '90%',
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    marginBottom: 16,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.beige,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  title: {
+    fontFamily: 'ClashDisplay',
+    fontSize: 16,
+    color: colors.black,
+    marginBottom: 4,
+  },
+  message: {
+    fontFamily: 'ClashDisplay',
+    fontSize: 14,
+    color: colors.darkGray,
   },
 });
